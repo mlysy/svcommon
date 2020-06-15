@@ -210,7 +210,7 @@ require(svcommon)
 require(TMB)
 
 nobs <- 1e3 # number of days
-nstocks <- 2 # number of stocks, excluding spx
+nstocks <- 5 # number of stocks, excluding spx
 
 # construct the data
 dt <- 1/252
@@ -225,9 +225,25 @@ alpha <- rep(0, nstocks+1)
 log_gamma <- rep(0, nstocks+2)
 mu <- rep(0, nstocks+2)
 log_sigma <- rep(0, nstocks+2)
-logit_tau <- rep(0, nstocks+1)
 logit_rho <- rep(0, nstocks+1)
-logit_omega <- rep(0, nstocks+1)
+logit_tau <- rep(0, nstocks+1)
+logit_omega <- rep(0, nstocks)
+
+#' @param stock Which stock to optimize over.
+svc_map <- function(stock) {
+  map <- list(alpha = 0:nstocks,
+              log_gamma = -1:nstocks,
+              mu = -1:nstocks,
+              log_sigma = -1:nstocks,
+              logit_rho = 0:nstocks,
+              logit_tau = 0:nstocks,
+              logit_omega = 1:nstocks)
+  # all NA except `stock`
+  lapply(map, function(x) {
+    x[x != stock] <- NA
+    factor(x, levels = if(all(is.na(x))) NULL else stock)
+  })
+}
 
 svc_ad <- MakeADFun(data = list(model = "sv_common",
                                 Xt = Xt, log_VPt = log_VPt, dt = dt),
@@ -240,10 +256,11 @@ svc_ad <- MakeADFun(data = list(model = "sv_common",
                                       logit_tau = logit_tau,
                                       logit_omega = logit_omega),
                     random = "log_Vt",
+                    map = svc_map(1),
                     DLL = "svcommon_TMBExports", silent = TRUE)
 
 system.time({
-  svc_ad$fn(c(alpha, log_gamma, mu, log_sigma, logit_rho, logit_tau, logit_omega))
+  svc_ad$fn(c(alpha, log_gamma[-1], mu, log_sigma, logit_rho, logit_tau, logit_omega))
   svc_ad$gr(c(alpha, log_gamma, mu, log_sigma, logit_rho, logit_tau, logit_omega))
 })
 
