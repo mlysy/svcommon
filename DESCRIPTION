@@ -18,3 +18,5 @@ LinkingTo:
     TMB
 Suggests: 
     testthat
+Depends: 
+    R (>= 2.10)
