@@ -71,8 +71,7 @@ svc_loglik <- function(alpha, gamma, mu, sigma, tau, rho, omega,
     mean_Y <- c(mean_VPV, mean_X)
     sd_Y <- c(sd_VPV, sd_X)
     var_Y <- t(Rho * sd_Y) * sd_Y
-    ind <- 1:(2*(nq+1)+1)
-    ll <- ll + lmvn(Y[ind], mu = mean_Y[ind], Sigma = var_Y[ind,ind,drop=FALSE])
+    ll <- ll + lmvn(Y, mu = mean_Y, Sigma = var_Y)
   }
   ll
 }
@@ -110,6 +109,25 @@ svc_loglik_fac <- function(alpha, gamma, mu, sigma, tau, rho, omega,
     }
   }
   ll_VP + ll_V + ll_X
+}
+
+#' eOU model likelihood
+eou_loglik <- function(alpha, gamma, mu, sigma, rho, log_Vt, Xt, dt) {
+  nobs <- length(log_Vt)
+  Rho <- cbind(c(1, rho), c(rho, 1)) * dt
+  ll <- 0
+  for(ii in 1:(nobs-1)) {
+    mean_V <- log_Vt[ii] - gamma * (log_Vt[ii] - mu) * dt
+    sd_V <- sigma
+    sd_X <- exp(log_Vt[ii])
+    mean_X <- Xt[ii] + (alpha - .5 * sd_X^2) * dt
+    Y <- c(log_Vt[ii+1], Xt[ii+1])
+    mean_Y <- c(mean_V, mean_X)
+    sd_Y <- c(sd_V, sd_X)
+    var_Y <- t(Rho * sd_Y) * sd_Y
+    ll <- ll + lmvn(Y, mu = mean_Y, Sigma = var_Y)
+  }
+  ll
 }
 
 #' Log-density of the multivariate normal distribution.
