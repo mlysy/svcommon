@@ -12,11 +12,4 @@ sv_init <- function(Xt, dt, block_size) {
                ceiling(seq(block_size, N, len = N)))
   Vt <- apply(ind, 2, function(ii) var(dX[ii[1]:ii[2]]))/dt
   c(Vt[1], Vt)
-  ## tmp <- apply(ind, 1, function(i) {
-  ##   m <- mean(dX[i[1]:i[2]])
-  ##   v <- var(dX[i[1]:i[2]])
-  ##   c(alpha = (m+v/2)/dt, v = v/dt)
-  ## })
-  ## v <- tmp[2,]
-  ## list(alpha = mean(tmp[1,]), v = c(v[1], v))
 }

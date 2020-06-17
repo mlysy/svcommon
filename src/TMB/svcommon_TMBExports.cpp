@@ -3,12 +3,15 @@
 #define TMB_LIB_INIT R_init_svcommon_TMBExports
 #include <TMB.hpp>
 #include "sv_common.hpp"
+#include "sv_eou.hpp"
 
 template<class Type>
 Type objective_function<Type>::operator() () {
   DATA_STRING(model);
   if(model == "sv_common") {
     return sv_common(this);
+  } else if(model == "sv_eou") {
+    return sv_eou(this);
   } else {
     error("Unknown model.");
   }
