@@ -14,7 +14,7 @@ sv_init(Xt, dt, block_size)
 \item{block_size}{Block size over which to calculate variance.}
 }
 \value{
-A vector of volatilities on the variance scale, of the same length as \code{Xt}.
+A vector of volatilities on the standard deviation scale, of the same length as \code{Xt}.
 }
 \description{
 Initialize latent volatilities in a stochastic volatility model.

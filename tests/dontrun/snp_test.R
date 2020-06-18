@@ -1,7 +1,6 @@
 #--- test with real data -------------------------------------------------------
 
 require(svcommon)
-require(TMB)
 
 nobs <- 1e3 # number of days
 nstocks <- 10 # number of stocks, excluding spx
@@ -13,7 +12,7 @@ Xt <- as.matrix(cbind(GSPC = snp500[1:nobs, "GSPC"],
 Xt <- log(Xt)
 log_VPt <- log(as.numeric(snp500[1:nobs, "VIX"]))
 # initialize latent variables
-log_Vt <- .5 * log(apply(Xt, 2, sv_init, dt = dt, block_size = 10))
+log_Vt <- log(apply(Xt, 2, sv_init, dt = dt, block_size = 10))
 # initialize parameters
 alpha <- rep(0, nstocks+1)
 log_gamma <- rep(0, nstocks+2)
@@ -63,16 +62,23 @@ svc_update <- function(stock, univ = FALSE, new_par, old_par) {
 # initialize parameters via individual stocks
 for(istock in 0:nstocks) {
   message("parameter = ", istock)
-  eou_ad <- MakeADFun(data = list(model = "sv_eou",
-                                  Xt = Xt[,istock+1], dt = dt),
-                      parameters = list(log_Vt = log_Vt[,istock+1],
-                                        alpha = alpha[istock+1],
-                                        log_gamma = log_gamma[istock+2],
-                                        mu = mu[istock+2],
-                                        log_sigma = log_sigma[istock+2],
-                                        logit_rho = logit_rho[istock+1]),
-                      random = "log_Vt",
-                      DLL = "svcommon_TMBExports", silent = TRUE)
+  eou_ad <- eou_MakeADFun(Xt = Xt[,istock+1], dt = dt,
+                          alpha = alpha[istock+1],
+                          log_Vt = log_Vt[,istock+1],
+                          log_gamma = log_gamma[istock+2],
+                          mu = mu[istock+2],
+                          log_sigma = log_sigma[istock+2],
+                          logit_rho = logit_rho[istock+1])
+  ## eou_ad2 <- MakeADFun(data = list(model = "sv_eou",
+  ##                                 Xt = Xt[,istock+1], dt = dt),
+  ##                     parameters = list(log_Vt = log_Vt[,istock+1],
+  ##                                       alpha = alpha[istock+1],
+  ##                                       log_gamma = log_gamma[istock+2],
+  ##                                       mu = mu[istock+2],
+  ##                                       log_sigma = log_sigma[istock+2],
+  ##                                       logit_rho = logit_rho[istock+1]),
+  ##                     random = "log_Vt",
+  ##                     DLL = "svcommon_TMBExports", silent = TRUE)
   tm <- system.time({
     opt <- optim(par = eou_ad$par,
                  fn = eou_ad$fn,
@@ -133,3 +139,9 @@ system.time({
 
 
 
+#--- convert to package functions ----------------------------------------------
+
+#' Need:
+#'
+#' - Wrapped `ADFun` constructors for the models.  This for argument checking, default inputs, and mappings.  Can also input parameters as a par_list.
+#' - `svc_update()`: update par_list.

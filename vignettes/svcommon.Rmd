@@ -77,7 +77,7 @@ Let $X_{it}$ denote the log price of asset $i$ at time $t$ and $V_{it}$ denote t
 $$
 \begin{aligned}
 \ud \log V_{it} & = -\gamma_i (\log V_{it} - \mu_i) \ud t + \sigma_i \ud B_{it}^V \\
-\ud X_{it} & = (\alpha_i - \tfrac 1 2 e^{2 V_{it}}) \ud t + e^{V_{it}} \left(\rho_i \ud B_{it}^V + \sqrt{1 - \rho_i^2} \ud B_{it}^Z\right).
+\ud X_{it} & = (\alpha_i - \tfrac 1 2 V_{it}^2) \ud t + V_{it} \left(\rho_i \ud B_{it}^V + \sqrt{1 - \rho_i^2} \ud B_{it}^Z\right).
 \end{aligned}
 $$
 The correlation between assets and volatilities comes from factor models for both the assets and the volatilities, namely
@@ -95,7 +95,7 @@ Here we propose to do something similar for the asset common innovation factor $
 $$
 \begin{aligned}
 \ud \log V_{0t} & = -\gamma_0 (\log V_{0t} - \mu_0) \ud t + \sigma_0 \left(\tau_0 \ud B_{0t}^V + \sqrt{1 - \tau_0^2} \right)\\
-\ud X_{0t} & = (\alpha_0 - \tfrac 1 2 e^{2 V_{0t}}) \ud t + e^{V_{0t}} \left(\rho_0 \ud B_{0 t}^Z + \sqrt{1 - \rho_0^2} \ud B_{0i}^\eta \right),
+\ud X_{0t} & = (\alpha_0 - \tfrac 1 2 V_{0t}^2) \ud t + V_{0t} \left(\rho_0 \ud B_{0 t}^Z + \sqrt{1 - \rho_0^2} \ud B_{0i}^\eta \right),
 \end{aligned}
 $$
 where $\ud B_{0t}^V = \tau_0 \ud B_{\star t}^V + \sqrt{1 - \tau_0^2} \ud B_{0t}^\epsilon$.  The asset common factor is estimated from the proxy by equating $B_{\star t}^Z = B_{0t}^Z$.
