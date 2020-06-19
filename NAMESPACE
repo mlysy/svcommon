@@ -2,4 +2,6 @@
 
 export(eou_MakeADFun)
 export(sv_init)
+export(svc_MakeADFun)
+export(svc_update)
 useDynLib(svcommon, .registration=TRUE); useDynLib(svcommon_TMBExports)

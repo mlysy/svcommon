@@ -6,6 +6,7 @@
 # comment out following line to link to vignette html on github
 inst/doc
 vignettes/.build.timestamp
+vignettes/svcommon_cache
 
 # C++
 *.o
@@ -14,3 +15,6 @@ vignettes/.build.timestamp
 
 # osx
 *.DS_Store
+
+doc
+Meta
