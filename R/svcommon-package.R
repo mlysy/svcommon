@@ -1,4 +1,6 @@
 #' @rawNamespace useDynLib(svcommon, .registration=TRUE); useDynLib(svcommon_TMBExports)
+#' @importFrom TMB MakeADFun
+#' @importFrom stats setNames var
 #' @keywords internal
 "_PACKAGE"
 
