@@ -18,7 +18,7 @@ svc_update <- function(fit, old_par, iasset) {
   new_par <- new_par[names(new_par) != "log_Vt"]
   # parameter updates
   ## if(iasset == "all") stop('iasset == "all" currently not supported.')
-  map_list <- svc_map(iasset, nasset)
+  map_list <- svc_map(iasset, nasset, fix_Vt = FALSE)
   for(nm in names(new_par)) {
     if(iasset == "all") {
       old_par[[nm]] <- new_par[[nm]]

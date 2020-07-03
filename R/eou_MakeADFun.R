@@ -9,6 +9,7 @@
 #' @param log_sigma Optional log-volatility diffusion parameter on the log scale.  See 'Details'.
 #' @param logit_rho Optional correlation parameter between asset and volatility innovations, on the logit scale.  See 'Details'.
 #' @param par_list Optional list with named elements consisting of a subset of `log_Vt`, `alpha`, `log_gamma`, `mu`, `log_sigma`, and `logit_rho`.  Values in `par_list` will supercede those of the corresponding individual argument if both are provided.
+#' @param ... Additional arguments to [TMB::MakeADFun()].
 #'
 #' @return The result of a call to [TMB::MakeADFun()].
 #'
@@ -28,7 +29,7 @@
 #' @export
 eou_MakeADFun <- function(Xt, dt,
                           log_Vt, alpha, log_gamma, mu, log_sigma, logit_rho,
-                          par_list) {
+                          par_list, ...) {
   # extract arguments from par_list
   if(!missing(par_list)) {
     for(arg_name in c("log_Vt", "alpha", "log_gamma",
@@ -55,7 +56,7 @@ eou_MakeADFun <- function(Xt, dt,
   TMB::MakeADFun(data = list(model = "sv_eou", Xt = Xt, dt = dt),
                  parameters = par_list,
                  random = "log_Vt",
-                 DLL = "svcommon_TMBExports", silent = TRUE)
+                 DLL = "svcommon_TMBExports", silent = TRUE, ...)
 }
 
 

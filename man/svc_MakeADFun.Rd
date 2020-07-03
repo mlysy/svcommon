@@ -17,7 +17,9 @@ svc_MakeADFun(
   logit_tau,
   logit_omega,
   par_list,
-  iasset = "all"
+  iasset = "all",
+  fix_Vt,
+  ...
 )
 }
 \arguments{
@@ -46,6 +48,10 @@ svc_MakeADFun(
 \item{par_list}{Optional list with named elements consisting of a subset of \code{log_Vt}, \code{alpha}, \code{log_gamma}, \code{mu}, \code{log_sigma}, \code{logit_rho}, \code{logit_tau}, and \code{logit_omega}.  Values in \code{par_list} will supercede those of the corresponding individual argument if both are provided.}
 
 \item{iasset}{Index of asset for which parameters are to be treated as non-fixed.  Either the character string "all" indicating that no parameters are fixed, or an integer in \code{-1:nasset}, where \code{-1} denotes the proxy for the volatility factor, \code{0} denotes the proxy for the asset common factor, and \code{1:nasset} denotes the remaining assets.}
+
+\item{fix_Vt}{Whether to fix the corresponding part of \code{log_Vt}.}
+
+\item{...}{Additional arguments to \code{\link[TMB:MakeADFun]{TMB::MakeADFun()}}.}
 }
 \value{
 The result of a call to \code{\link[TMB:MakeADFun]{TMB::MakeADFun()}}.

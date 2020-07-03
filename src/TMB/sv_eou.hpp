@@ -37,8 +37,9 @@ Type sv_eou(objective_function<Type>* obj) {
   vector<Type> dB_V(n_obs-1);
   vector<Type> dB_Z(n_obs-1);
   Type rho_sqm;
-
+  // output
   Type llik = Type(0.0);
+  Type log_VT; // log-volatility at last timepoint
   // volatility
   ou_ms<Type>(sde_mean, sde_sd, log_Vt.segment(0, n_obs-1), dt,
 	      gamma, mu, sigma);
@@ -52,6 +53,15 @@ Type sv_eou(objective_function<Type>* obj) {
   sde_sd.array() *= rho_sqm;
   residual<Type>(dB_Z, Xt.segment(1, n_obs-1), sde_mean, sde_sd);
   llik += (dnorm(dB_Z, Type(0.0), sqrt_dt, 1) - log(sde_sd)).sum();
+  // add log_VT to the output
+  log_VT = log_Vt(n_obs-1);
+  ADREPORT(log_VT);
+  // add all parameters to report
+  ADREPORT(alpha);
+  ADREPORT(log_gamma);
+  ADREPORT(mu);
+  ADREPORT(log_sigma);
+  ADREPORT(logit_rho);
   return -llik;
 }
 #undef TMB_OBJECTIVE_PTR

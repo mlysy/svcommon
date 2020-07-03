@@ -13,6 +13,8 @@
 #' @param logit_omega Optional vector of `nasset` correlation parameters between the residual asset price of the common-factor proxy and the other residual asset prices.  See 'Details'.
 #' @param par_list Optional list with named elements consisting of a subset of `log_Vt`, `alpha`, `log_gamma`, `mu`, `log_sigma`, `logit_rho`, `logit_tau`, and `logit_omega`.  Values in `par_list` will supercede those of the corresponding individual argument if both are provided.
 #' @param iasset Index of asset for which parameters are to be treated as non-fixed.  Either the character string "all" indicating that no parameters are fixed, or an integer in `-1:nasset`, where `-1` denotes the proxy for the volatility factor, `0` denotes the proxy for the asset common factor, and `1:nasset` denotes the remaining assets.
+#' @param fix_Vt Whether to fix the corresponding part of `log_Vt`.
+#' @param ... Additional arguments to [TMB::MakeADFun()].
 #'
 #' @return The result of a call to [TMB::MakeADFun()].
 #'
@@ -32,7 +34,8 @@
 #' @export
 svc_MakeADFun <- function(Xt, log_VPt, dt,
                           log_Vt, alpha, log_gamma, mu, log_sigma, logit_rho,
-                          logit_tau, logit_omega, par_list, iasset = "all") {
+                          logit_tau, logit_omega, par_list,
+                          iasset = "all", fix_Vt, ...) {
   # extract arguments from par_list
   if(!missing(par_list)) {
     for(arg_name in c("log_Vt", "alpha", "log_gamma", "mu",
@@ -65,25 +68,27 @@ svc_MakeADFun <- function(Xt, log_VPt, dt,
   par_list <- list(log_Vt = log_Vt, alpha = alpha, log_gamma = log_gamma,
                    mu = mu, log_sigma = log_sigma, logit_rho = logit_rho,
                    logit_tau = logit_tau, logit_omega = logit_omega)
-  map_list <- svc_map(iasset, nasset)
+  map_list <- svc_map(iasset, nasset, nobs, fix_Vt)
   TMB::MakeADFun(data = list(model = "sv_common",
                              Xt = Xt, log_VPt = log_VPt, dt = dt),
                  parameters = par_list,
                  random = "log_Vt",
                  map = map_list,
-                 DLL = "svcommon_TMBExports", silent = TRUE)
+                 DLL = "svcommon_TMBExports", silent = TRUE, ...)
 }
 
 #--- helper fuctions -----------------------------------------------------------
 
 #' Create map to fix certain parameters.
 #'
-#' @param iasset See [svc_MakeADFun()].
-#' @param nasset See [svc_MakeADFun()].
+#' @param iasset,nasset,nobs,fix_Vt See [svc_MakeADFun()].
 #' @noRd
-svc_map <- function(iasset, nasset) {
+svc_map <- function(iasset, nasset, nobs, fix_Vt) {
   if(iasset == "all") {
     map_list <- list()
+    if(fix_Vt) {
+      map_list <- c(map_list, list(log_Vt = factor(rep(NA, nobs*(nasset+1)))))
+    }
   } else if(iasset %in% -1:nasset) {
     map_list <- list(alpha = 0:nasset,
                      log_gamma = -1:nasset,
@@ -97,6 +102,12 @@ svc_map <- function(iasset, nasset) {
       x[x != iasset] <- NA
       factor(x, levels = if(all(is.na(x))) NULL else iasset)
     })
+    if(fix_Vt) {
+      log_Vt <- matrix(1:(nobs*(nasset+1)), nobs, nasset+1)
+      log_Vt[,iasset != 0:nasset] <- NA
+      log_Vt <- factor(as.numeric(log_Vt))
+      map_list <- c(map_list, list(log_Vt = log_Vt))
+    }
   } else {
     stop("Invalid specification of iasset.")
   }

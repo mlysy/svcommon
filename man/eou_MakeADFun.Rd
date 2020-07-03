@@ -13,7 +13,8 @@ eou_MakeADFun(
   mu,
   log_sigma,
   logit_rho,
-  par_list
+  par_list,
+  ...
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ eou_MakeADFun(
 \item{logit_rho}{Optional correlation parameter between asset and volatility innovations, on the logit scale.  See 'Details'.}
 
 \item{par_list}{Optional list with named elements consisting of a subset of \code{log_Vt}, \code{alpha}, \code{log_gamma}, \code{mu}, \code{log_sigma}, and \code{logit_rho}.  Values in \code{par_list} will supercede those of the corresponding individual argument if both are provided.}
+
+\item{...}{Additional arguments to \code{\link[TMB:MakeADFun]{TMB::MakeADFun()}}.}
 }
 \value{
 The result of a call to \code{\link[TMB:MakeADFun]{TMB::MakeADFun()}}.

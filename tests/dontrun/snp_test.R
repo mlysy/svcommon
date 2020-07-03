@@ -82,10 +82,11 @@ for(iasset in 0:nasset) {
 # blockwise coordinate descent
 
 for(iasset in -1:nasset) {
+  iasset <- 1
   message("asset = ", iasset)
   svc_ad <- svc_MakeADFun(Xt = Xt, log_VPt = log_VPt, dt = dt,
                           par_list = curr_par,
-                          iasset = iasset)
+                          iasset = iasset, fix_Vt = FALSE)
   ## svc_ad2 <- MakeADFun(data = list(model = "sv_common",
   ##                                  Xt = Xt, log_VPt = log_VPt, dt = dt),
   ##                      parameters = curr_par,
@@ -101,7 +102,7 @@ for(iasset in -1:nasset) {
   })
   message("Time: ", round(tm[3], 2), " seconds")
   # update parameters
-  curr_par <- svc_update(svc_ad, old_par = curr_par, iasset = iasset)
+  curr_par2 <- svc_update(svc_ad, old_par = curr_par, iasset = iasset)
   ## curr_par2 <- svc_update2(iasset, nasset = nasset,
   ##                         new_par = opt$par, old_par = curr_par)
   ## curr_par2$log_Vt <- matrix(svc_ad$env$last.par.best[1:(nobs * (nasset+1))],

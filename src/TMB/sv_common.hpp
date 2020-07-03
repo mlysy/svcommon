@@ -48,8 +48,9 @@ Type sv_common(objective_function<Type>* obj) {
   vector<Type> dB_Z0(n_obs-1);
   vector<Type> dB_Z(n_obs-1);
   Type rho_sqm;
-
+  // output
   Type llik = Type(0.0);
+  vector<Type> log_VT(n_stocks); // log-volatilities at last timepoint
   // volatility proxy
   ou_ms<Type>(sde_mean, sde_sd, log_VPt.segment(0, n_obs-1), dt,
 	      gamma(0), mu(0), sigma(0));
@@ -86,6 +87,17 @@ Type sv_common(objective_function<Type>* obj) {
       llik += (dnorm(dB_Z, Type(0.0), sqrt_dt, 1) - log(sde_sd)).sum();
     }
   }
+  // add log_VT to the output
+  log_VT = log_Vt.row(n_obs-1);
+  ADREPORT(log_VT);
+  // add all parameters to report
+  ADREPORT(alpha);
+  ADREPORT(log_gamma);
+  ADREPORT(mu);
+  ADREPORT(log_sigma);
+  ADREPORT(logit_rho);
+  ADREPORT(logit_tau);
+  ADREPORT(logit_omega);
   return -llik;
 }
 #undef TMB_OBJECTIVE_PTR
