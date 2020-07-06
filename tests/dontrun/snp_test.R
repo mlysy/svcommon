@@ -2,7 +2,7 @@
 
 require(svcommon)
 
-nobs <- 250 # number of days
+nobs <- 1000 # number of days
 nasset <- 5 # number of assets, excluding spx
 
 # construct the data
@@ -33,16 +33,16 @@ curr_par <- list(log_Vt = log_Vt,
 
 
 
-#' @param iasset Which parameter to update
-#' @param new_par New parameter vector.
-#' @param old_par Old parameter list.
-svc_update2 <- function(iasset, nasset, new_par, old_par) {
-  map <- svcommon:::svc_map(iasset, nasset)
-  for(nm in names(new_par)) {
-    old_par[[nm]][!is.na(map[[nm]])] <- new_par[nm]
-  }
-  old_par
-}
+## #' @param iasset Which parameter to update
+## #' @param new_par New parameter vector.
+## #' @param old_par Old parameter list.
+## svc_update2 <- function(iasset, nasset, new_par, old_par) {
+##   map <- svcommon:::svc_map(iasset, nasset)
+##   for(nm in names(new_par)) {
+##     old_par[[nm]][!is.na(map[[nm]])] <- new_par[nm]
+##   }
+##   old_par
+## }
 
 # initialize parameters via individual asset
 for(iasset in 0:nasset) {
@@ -80,13 +80,16 @@ for(iasset in 0:nasset) {
 }
 
 # blockwise coordinate descent
+# checked: fix_Vt = T/F gives same result, former much faster :)
+
+curr_par2 <- curr_par
+curr_par3 <- curr_par
 
 for(iasset in -1:nasset) {
-  iasset <- 1
   message("asset = ", iasset)
   svc_ad <- svc_MakeADFun(Xt = Xt, log_VPt = log_VPt, dt = dt,
                           par_list = curr_par,
-                          iasset = iasset, fix_Vt = FALSE)
+                          iasset = iasset, fix_Vt = TRUE)
   ## svc_ad2 <- MakeADFun(data = list(model = "sv_common",
   ##                                  Xt = Xt, log_VPt = log_VPt, dt = dt),
   ##                      parameters = curr_par,
@@ -102,7 +105,9 @@ for(iasset in -1:nasset) {
   })
   message("Time: ", round(tm[3], 2), " seconds")
   # update parameters
-  curr_par2 <- svc_update(svc_ad, old_par = curr_par, iasset = iasset)
+  curr_par <- svc_update(svc_ad, old_par = curr_par, iasset = iasset)
+  ## curr_par2 <- svc_update(svc_ad, old_par = curr_par2, iasset = iasset)
+  ## curr_par3 <- svc_update(svc_ad, old_par = curr_par3, iasset = iasset)
   ## curr_par2 <- svc_update2(iasset, nasset = nasset,
   ##                         new_par = opt$par, old_par = curr_par)
   ## curr_par2$log_Vt <- matrix(svc_ad$env$last.par.best[1:(nobs * (nasset+1))],

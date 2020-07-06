@@ -28,9 +28,14 @@ svc_update <- function(fit, old_par, iasset) {
   }
   # volatility update
   if(length(new_Vt) == nobs) {
+    # eou or svc single asset update (not recommended)
     old_par$log_Vt[,iasset+1] <- new_Vt
+  } else if(length(new_Vt) == 2*nobs) {
+    # svc asset + common asset update
+    old_par$log_Vt[,c(1, iasset+1)] <- matrix(new_Vt, nobs, 2)
   } else if(length(new_Vt) == nobs * (nasset+1)) {
-    old_par$log_Vt <- matrix(new_Vt, nobs, nasset+1)
+    # svc all asset update
+    old_par$log_Vt[,] <- matrix(new_Vt, nobs, nasset+1)
   }
   old_par
 }

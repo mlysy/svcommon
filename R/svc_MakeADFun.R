@@ -82,6 +82,7 @@ svc_MakeADFun <- function(Xt, log_VPt, dt,
 #' Create map to fix certain parameters.
 #'
 #' @param iasset,nasset,nobs,fix_Vt See [svc_MakeADFun()].
+#' @details With `fix_Vt = TRUE`, both `iasset` and the common asset (`iasset = 0`) are the only ones to get updated.
 #' @noRd
 svc_map <- function(iasset, nasset, nobs, fix_Vt) {
   if(iasset == "all") {
@@ -103,8 +104,9 @@ svc_map <- function(iasset, nasset, nobs, fix_Vt) {
       factor(x, levels = if(all(is.na(x))) NULL else iasset)
     })
     if(fix_Vt) {
+      # all but individual asset and common asset are fixed
       log_Vt <- matrix(1:(nobs*(nasset+1)), nobs, nasset+1)
-      log_Vt[,iasset != 0:nasset] <- NA
+      log_Vt[,!(0:nasset %in% c(0, iasset))] <- NA
       log_Vt <- factor(as.numeric(log_Vt))
       map_list <- c(map_list, list(log_Vt = log_Vt))
     }
