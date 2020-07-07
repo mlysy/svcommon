@@ -18,7 +18,7 @@ svc_MakeADFun(
   logit_omega,
   par_list,
   iasset = "all",
-  fix_Vt,
+  fix_Vt = TRUE,
   ...
 )
 }
@@ -49,7 +49,7 @@ svc_MakeADFun(
 
 \item{iasset}{Index of asset for which parameters are to be treated as non-fixed.  Either the character string "all" indicating that no parameters are fixed, or an integer in \code{-1:nasset}, where \code{-1} denotes the proxy for the volatility factor, \code{0} denotes the proxy for the asset common factor, and \code{1:nasset} denotes the remaining assets.}
 
-\item{fix_Vt}{Whether to fix the corresponding part of \code{log_Vt}.}
+\item{fix_Vt}{Whether to fix the corresponding part of \code{log_Vt}.  This argument is soon to be depreciated as it gives the same result for \code{TRUE/FALSE} but the former is much faster.}
 
 \item{...}{Additional arguments to \code{\link[TMB:MakeADFun]{TMB::MakeADFun()}}.}
 }

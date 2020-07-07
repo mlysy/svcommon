@@ -9,10 +9,10 @@ template <class Type>
 using RefMatrix = Eigen::Ref <Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic> >;
 template <class Type>
 using cRefMatrix = const Eigen::Ref <const Eigen::Matrix<Type, Eigen::Dynamic, Eigen::Dynamic> >;
-// template <class Type>
-// using RefVector = Eigen::Ref <Eigen::Vector<Type, Eigen::Dynamic> >;
-// template <class Type>
-// using cRefVector = const Eigen::Ref <const Eigen::Matrix<Type, Eigen::Dynamic> >;
+template <class Type>
+using RefVector = Eigen::Ref <Eigen::Matrix<Type, Eigen::Dynamic, 1> >;
+template <class Type>
+using cRefVector = const Eigen::Ref <const Eigen::Matrix<Type, Eigen::Dynamic, 1> >;
 
 /// @brief Calculate mean and standard deviation of OU model.
 ///
@@ -24,8 +24,8 @@ using cRefMatrix = const Eigen::Ref <const Eigen::Matrix<Type, Eigen::Dynamic, E
 /// @param[in] mu Mean parameter.
 /// @param[in] sigma Diffusion parameter.
 template <class Type>
-void ou_ms(RefMatrix<Type> mean, RefMatrix<Type> sd,
-	   cRefMatrix<Type>& logv, Type dt,
+void ou_ms(RefVector<Type> mean, RefVector<Type> sd,
+	   cRefVector<Type>& logv, Type dt,
 	   Type gamma, Type mu, Type sigma) {
   mean = logv.array() - gamma * (logv.array() - mu) * dt;
   sd.setConstant(sigma);
@@ -41,8 +41,8 @@ void ou_ms(RefMatrix<Type> mean, RefMatrix<Type> sd,
 /// @param[in] dt Interobservation time.
 /// @param[in] alpha Growth rate parameter.
 template <class Type>
-void bm_ms(RefMatrix<Type> mean, RefMatrix<Type> sd,
-	   cRefMatrix<Type>& x, cRefMatrix<Type>& logv, Type dt,
+void bm_ms(RefVector<Type> mean, RefVector<Type> sd,
+	   cRefVector<Type>& x, cRefVector<Type>& logv, Type dt,
 	   Type alpha) {
   sd = logv.array().exp();
   mean = x.array() + (alpha - Type(.5) * sd.array() * sd.array()) * dt;
@@ -51,17 +51,23 @@ void bm_ms(RefMatrix<Type> mean, RefMatrix<Type> sd,
 
 /// @brief Calculate residual.
 ///
-/// @param[out] z Residual vector of size `n`.
-/// @param[in] x Original vector of size `n`.
-/// @param[in] mu Mean vector of size `n`.
-/// @param[in] sigma Standard deviation vector of size `n`.
+/// @param[out] z Residual vector of size `nobs`.
+/// @param[in] x Original vector of size `nobs`.
+/// @param[in] mu Mean vector of size `nobs`.
+/// @param[in] sigma Standard deviation vector of size `nobs`.
 template <class Type>
-void residual(RefMatrix<Type> z, cRefMatrix<Type>& x,
-	      cRefMatrix<Type>& mu, cRefMatrix<Type> sigma) {
+void residual(RefVector<Type> z, cRefVector<Type>& x,
+	      cRefVector<Type>& mu, cRefVector<Type> sigma) {
   z = (x - mu).array() / sigma.array();
   return;
 }
 
+/// @brief Calculate the "complement" of a correlation parameter.
+///
+/// The complement of a correlation parameter `|rho| < 1` is defined as `rho_sqm = sqrt(1 - rho^2)`.
+///
+/// @param[in] rho Correlation parameter (scalar).
+/// @return The complement of `rho`.
 template <class Type>
 Type corr_sqm(Type rho) {
   return sqrt(Type(1.0) - rho*rho);

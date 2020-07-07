@@ -13,7 +13,7 @@
 #' @param logit_omega Optional vector of `nasset` correlation parameters between the residual asset price of the common-factor proxy and the other residual asset prices.  See 'Details'.
 #' @param par_list Optional list with named elements consisting of a subset of `log_Vt`, `alpha`, `log_gamma`, `mu`, `log_sigma`, `logit_rho`, `logit_tau`, and `logit_omega`.  Values in `par_list` will supercede those of the corresponding individual argument if both are provided.
 #' @param iasset Index of asset for which parameters are to be treated as non-fixed.  Either the character string "all" indicating that no parameters are fixed, or an integer in `-1:nasset`, where `-1` denotes the proxy for the volatility factor, `0` denotes the proxy for the asset common factor, and `1:nasset` denotes the remaining assets.
-#' @param fix_Vt Whether to fix the corresponding part of `log_Vt`.
+#' @param fix_Vt Whether to fix the corresponding part of `log_Vt`.  This argument is soon to be depreciated as it gives the same result for `TRUE/FALSE` but the former is much faster.
 #' @param ... Additional arguments to [TMB::MakeADFun()].
 #'
 #' @return The result of a call to [TMB::MakeADFun()].
@@ -35,7 +35,7 @@
 svc_MakeADFun <- function(Xt, log_VPt, dt,
                           log_Vt, alpha, log_gamma, mu, log_sigma, logit_rho,
                           logit_tau, logit_omega, par_list,
-                          iasset = "all", fix_Vt, ...) {
+                          iasset = "all", fix_Vt = TRUE, ...) {
   # extract arguments from par_list
   if(!missing(par_list)) {
     for(arg_name in c("log_Vt", "alpha", "log_gamma", "mu",

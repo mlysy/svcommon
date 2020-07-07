@@ -30,7 +30,8 @@ Type sv_eou(objective_function<Type>* obj) {
   // parameter conversions
   Type gamma = exp(log_gamma);
   Type sigma = exp(log_sigma);
-  Type rho = Type(2.0) / (Type(1.0) + exp(-logit_rho)) - Type(1.0);
+  Type eml_rho = exp(-logit_rho);
+  Type rho = Type(2.0) / (Type(1.0) + eml_rho) - Type(1.0);
   // temporary storage
   vector<Type> sde_mean(n_obs-1);
   vector<Type> sde_sd(n_obs-1);
@@ -38,13 +39,13 @@ Type sv_eou(objective_function<Type>* obj) {
   vector<Type> dB_Z(n_obs-1);
   Type rho_sqm;
   // output
-  Type llik = Type(0.0);
+  Type lpost = Type(0.0);
   Type log_VT; // log-volatility at last timepoint
   // volatility
   ou_ms<Type>(sde_mean, sde_sd, log_Vt.segment(0, n_obs-1), dt,
 	      gamma, mu, sigma);
   residual<Type>(dB_V, log_Vt.segment(1, n_obs-1), sde_mean, sde_sd);
-  llik += (dnorm(dB_V, Type(0.0), sqrt_dt, 1) - log(sde_sd)).sum();
+  lpost += (dnorm(dB_V, Type(0.0), sqrt_dt, 1) - log(sde_sd)).sum();
   // log-asset
   bm_ms<Type>(sde_mean, sde_sd,
 	      Xt.segment(0, n_obs-1), log_Vt.segment(0, n_obs-1), dt, alpha);
@@ -52,7 +53,9 @@ Type sv_eou(objective_function<Type>* obj) {
   sde_mean += sde_sd.array() * dB_V.array() * rho;
   sde_sd.array() *= rho_sqm;
   residual<Type>(dB_Z, Xt.segment(1, n_obs-1), sde_mean, sde_sd);
-  llik += (dnorm(dB_Z, Type(0.0), sqrt_dt, 1) - log(sde_sd)).sum();
+  lpost += (dnorm(dB_Z, Type(0.0), sqrt_dt, 1) - log(sde_sd)).sum();
+  // prior on rho
+  lpost -= logit_rho + Type(2.0) * log(Type(1.0) + eml_rho);
   // add log_VT to the output
   log_VT = log_Vt(n_obs-1);
   ADREPORT(log_VT);
@@ -62,7 +65,7 @@ Type sv_eou(objective_function<Type>* obj) {
   ADREPORT(mu);
   ADREPORT(log_sigma);
   ADREPORT(logit_rho);
-  return -llik;
+  return -lpost;
 }
 #undef TMB_OBJECTIVE_PTR
 #define TMB_OBJECTIVE_PTR this

@@ -44,6 +44,26 @@ curr_par <- list(log_Vt = log_Vt,
 ##   old_par
 ## }
 
+# initialize parameters of log_Vt
+
+#' Estimate parameters of an Ornstein-Uhlenbeck process.
+#'
+#' Uses least-squares on the Euler approximation.
+ou_fit <- function(Xt, dt) {
+  nobs <- length(Xt)
+  M <- lm(diff(Xt) ~ Xt[-nobs])
+  beta <- as.numeric(coef(M))
+  gamma <- -beta[2]/dt
+  mu <- beta[1]/(gamma*dt)
+  sigma <- sqrt(mean(resid(M)^2)/dt)
+  c(gamma = gamma, mu = mu, sigma = sigma)
+}
+
+VPt_par <- ou_fit(log_VPt, dt)
+curr_par$log_gamma[1] <- log(VPt_par["gamma"])
+curr_par$mu[1] <- VPt_par["mu"]
+curr_par$log_sigma[1] <- log(VPt_par["sigma"])
+
 # initialize parameters via individual asset
 for(iasset in 0:nasset) {
   message("asset = ", iasset)
@@ -65,11 +85,24 @@ for(iasset in 0:nasset) {
   ##                     random = "log_Vt",
   ##                     DLL = "svcommon_TMBExports", silent = TRUE)
   ## all.equal(eou_ad, eou_ad2)
+  ## tm <- system.time({
+  ##   opt <- optim(par = eou_ad$par,
+  ##                fn = eou_ad$fn,
+  ##                gr = eou_ad$gr,
+  ##                method = "BFGS", control = list(trace = 1))
+  ## })
+  ## tm <- system.time({
+  ##   opt <- nlminb(start = eou_ad$par,
+  ##                 objective = eou_ad$fn,
+  ##                 gradient = eou_ad$gr, control = list(trace = 10))
+  ## })
   tm <- system.time({
-    opt <- optim(par = eou_ad$par,
-                 fn = eou_ad$fn,
-                 gr = eou_ad$gr,
-                 method = "BFGS", control = list(trace = 1))
+    opt <- nlm(p = eou_ad$par,
+               f = function(par) {
+                 out <- eou_ad$fn(par)
+                 attr(out,"gradient") <- eou_ad$gr()
+                 out
+               }, print.level = 1)
   })
   message("Time: ", round(tm[3], 2), " seconds")
   curr_par <- svc_update(eou_ad, old_par = curr_par, iasset = iasset)
@@ -78,6 +111,53 @@ for(iasset in 0:nasset) {
   ## curr_par2$log_Vt[,iasset+1] <- eou_ad$env$last.par.best[1:nobs]
   ## message("svc_update == svc_update2: ", identical(curr_par, curr_par2))
 }
+
+# initialize the remaining parameters
+
+#' Extract the Browian increments from the SVC model.
+#'
+#' @return A list with elements:
+#' \describe{
+#'   \item{`V`}{An `nobs x (nasset+2)` matrix of the log-volatility innovations.}
+#'   \item{`X`}{An `nobs x (nasset+1)` matrix of log-asset innovations.}
+#'   \item{`Z`}{An `nobs x (naxsset+1)` matrix of residual log-asset innovations, after account for the log-volatility innovations.  That is,
+#'     ```
+#'     dB_Z = (dB_X - rho dB_V) / sqrt(1 - rho^2).
+#'     ```
+#'   }
+#' }
+svc_dB <- function(Xt, log_VPt, log_Vt, dt,
+                   alpha, log_gamma, mu, log_sigma, logit_rho) {
+  nobs <- nrow(Xt)
+  nasset <- ncol(Xt)-1
+  ind0 <- 1:(nobs-1)
+  # do all the volatilities at once
+  dB_V <- cbind(log_VPt, log_Vt)
+  dB_V <- t(apply(dB_V, 2, diff)) + exp(log_gamma) * (t(dB_V[ind0,]) - mu) * dt
+  dB_V <- dB_V / exp(log_sigma)
+  # innovations for nassets and asset common factor
+  Vt <- exp(t(log_Vt[ind0,]))
+  dB_X <- t(apply(Xt, 2, diff)) - (alpha - .5 * Vt^2) * dt
+  dB_X <- dB_X / Vt
+  # residual part after removing dB_V
+  rho <- 2/(1 + exp(-logit_rho)) - 1
+  dB_Z <- (dB_X - rho * dB_V[-1,]) / sqrt(1 - rho^2)
+  list(V = t(dB_V), X = t(dB_X), Z = t(dB_Z))
+}
+
+#' Convert correlation parameter to unconstrained scale
+cor_trans <- function(rho) {
+  nu <- .5 * (rho + 1)
+  log(nu) - log(1-nu)
+}
+
+dB <- svc_dB(Xt, log_VPt = log_VPt, log_Vt = curr_par$log_Vt, dt = dt,
+             alpha = curr_par$alpha, log_gamma = curr_par$log_gamma,
+             mu = curr_par$mu, log_sigma = curr_par$log_sigma,
+             logit_rho = curr_par$logit_rho)
+
+curr_par$logit_tau[] <- as.numeric(cor_trans(cor(dB$V[,1], dB$V[,-1])))
+curr_par$logit_omega[] <- as.numeric(cor_trans(cor(dB$Z[,1], dB$Z[,-1])))
 
 # blockwise coordinate descent
 # checked: fix_Vt = T/F gives same result, former much faster :)
@@ -97,11 +177,24 @@ for(iasset in -1:nasset) {
   ##                      map = svc_map(iasset, nasset = nasset),
   ##                      DLL = "svcommon_TMBExports", silent = TRUE)
   ## all.equal(svc_ad, svc_ad2)
+  ## tm <- system.time({
+  ##   opt <- optim(par = svc_ad$par,
+  ##                fn = svc_ad$fn,
+  ##                gr = svc_ad$gr,
+  ##                method = "BFGS", control = list(trace = 1))
+  ## })
+  ## tm <- system.time({
+  ##   opt <- nlminb(start = svc_ad$par,
+  ##                 objective = svc_ad$fn,
+  ##                 gradient = svc_ad$gr, control = list(trace = 10))
+  ## })
   tm <- system.time({
-    opt <- optim(par = svc_ad$par,
-                 fn = svc_ad$fn,
-                 gr = svc_ad$gr,
-                 method = "BFGS", control = list(trace = 1))
+    opt <- nlm(p = svc_ad$par,
+               f = function(par) {
+                 out <- svc_ad$fn(par)
+                 attr(out,"gradient") <- svc_ad$gr()
+                 out
+               }, print.level = 1)
   })
   message("Time: ", round(tm[3], 2), " seconds")
   # update parameters

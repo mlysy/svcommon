@@ -6,7 +6,7 @@ author: |
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{svcommon}
+  %\VignetteIndexEntry{Fast Inference for Common-Factor Stochastic Volatility Models}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -62,7 +62,7 @@ vignette: >
 </script>
 
 
-```{r, include = FALSE}
+```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
@@ -93,8 +93,8 @@ $$
 Here we propose to do something similar for the asset common innovation factor $B_{\star t}^Z$.  That is, let $(X_{0t}, V_{0t})$ be a univariate stochastic volatility model for an observable proxy for the common asset factor (for example, SPX).  Then we give it a similar marginal model to the above:
 $$
 \begin{aligned}
-\ud \log V_{0t} & = -\gamma_0 (\log V_{0t} - \mu_0) \ud t + \sigma_0 \left(\tau_0 \ud B_{0t}^V + \sqrt{1 - \tau_0^2} \right)\\
-\ud X_{0t} & = (\alpha_0 - \tfrac 1 2 V_{0t}^2) \ud t + V_{0t} \left(\rho_0 \ud B_{0 t}^Z + \sqrt{1 - \rho_0^2} \ud B_{0i}^\eta \right),
+\ud \log V_{0t} & = -\gamma_0 (\log V_{0t} - \mu_0) \ud t + \sigma_0 \ud B_{0t}^V \\
+\ud X_{0t} & = (\alpha_0 - \tfrac 1 2 V_{0t}^2) \ud t + V_{0t} \left(\rho_0 \ud B_{0 t}^V + \sqrt{1 - \rho_0^2} \ud B_{0t}^Z \right),
 \end{aligned}
 $$
 where $\ud B_{0t}^V = \tau_0 \ud B_{\star t}^V + \sqrt{1 - \tau_0^2} \ud B_{0t}^\epsilon$.  The asset common factor is estimated from the proxy by equating $B_{\star t}^Z = B_{0t}^Z$.
@@ -118,7 +118,7 @@ Initial guesses for the parameters of the common-factor stochastic volatility (S
 
 ```{r init_opt}
 # problem dimensions
-nobs <- 250 # number of days
+nobs <- 1000 # number of days
 nasset <- 5 # number of assets, excluding GSPC
 
 # format the data
@@ -177,7 +177,9 @@ for(iasset in 0:nasset) {
 
 ## Blockwise Coordinate Descent
 
-The following algorithm updates the parameters for each asset conditioned on the values of all the others.  Here, `nepoch` denotes the number of cycles through all assets.  For this dataset it appears that after `nepoch = 3` the parameter values are changing very little.
+The following algorithm updates the parameters for each asset conditioned on the values of all the others.  Note that the Laplace approximation in this case depends only on the latent volatilities of the given asset and that of the asset common factor.  Thus, **svcommon** removes the other volatilities from the gradient calculations, which considerably speeds up the calculations.
+
+Here, `nepoch` denotes the number of cycles through all assets.  For this dataset it appears that after `nepoch = 3` the parameter values are changing very little.
 
 ```{r block_coord}
 nepoch <- 3
@@ -217,11 +219,11 @@ We can see that a couple of the correlation values are extremely large, leading 
 
 ```{r}
 # re-initialized bad correlations
-curr_par$logit_tau[2] <- 0
-curr_par$logit_omega[5] <- 0
+curr_par$logit_tau[1] <- 0
+## curr_par$logit_omega[c(1,5)] <- 0
 
 # rerun the affected block optimizations
-bad_assets <- c(1, 5) # note the indexing
+bad_assets <- 0 # note the indexing
 for(iasset in bad_assets) {
   message("asset = ", iasset)
   svc_ad <- svc_MakeADFun(Xt = Xt, log_VPt = log_VPt, dt = dt,
