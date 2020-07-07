@@ -152,7 +152,7 @@ ilogit <- function(x, min = 0, max = 1) {
   1/(1 + exp(-x)) * (max - min) + min
 }
 
-# uniform correlation prior on the logit scale
-rho_lpi <- function(logit_rho) {
-  -logit_rho - 2 * log(1 + exp(-logit_rho))
+# uniform correlation log-prior on the logit scale
+cor_lprior <- function(nu) {
+  -nu - 2 * log(1 + exp(-nu))
 }

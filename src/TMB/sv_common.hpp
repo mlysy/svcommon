@@ -37,9 +37,12 @@ Type sv_common(objective_function<Type>* obj) {
   // parameter conversions
   vector<Type> gamma = exp(log_gamma);
   vector<Type> sigma = exp(log_sigma);
-  vector<Type> rho = Type(2.0) / (Type(1.0) + exp(-logit_rho)) - Type(1.0);
-  vector<Type> tau = Type(2.0) / (Type(1.0) + exp(-logit_tau)) - Type(1.0);
-  vector<Type> omega = Type(2.0) / (Type(1.0) + exp(-logit_omega)) - Type(1.0);
+  vector<Type> eml_rho = exp(-logit_rho);
+  vector<Type> eml_tau = exp(-logit_tau);
+  vector<Type> eml_omega = exp(-logit_omega);
+  vector<Type> rho = Type(2.0) / (Type(1.0) + eml_rho) - Type(1.0);
+  vector<Type> tau = Type(2.0) / (Type(1.0) + eml_tau) - Type(1.0);
+  vector<Type> omega = Type(2.0) / (Type(1.0) + eml_omega) - Type(1.0);
   // temporary storage
   vector<Type> sde_mean(n_obs-1);
   vector<Type> sde_sd(n_obs-1);
@@ -49,24 +52,23 @@ Type sv_common(objective_function<Type>* obj) {
   vector<Type> dB_Z(n_obs-1);
   Type rho_sqm;
   // output
-  Type llik = Type(0.0);
+  Type lpost = Type(0.0);
   vector<Type> log_VT(n_stocks); // log-volatilities at last timepoint
   // volatility proxy
   ou_ms<Type>(sde_mean, sde_sd, log_VPt.segment(0, n_obs-1), dt,
 	      gamma(0), mu(0), sigma(0));
   residual<Type>(dB_VP, log_VPt.segment(1, n_obs-1), sde_mean, sde_sd);
-  // dB_VP = (log_VPt.segment(1, n_obs-1) - sde_mean).array() / sde_sd.array();
   REPORT(sde_mean);
   REPORT(sde_sd);
   REPORT(dB_VP);
-  llik += (dnorm(dB_VP, Type(0.0), sqrt_dt, 1) - log(sde_sd)).sum();
+  lpost += (dnorm(dB_VP, Type(0.0), sqrt_dt, 1) - log(sde_sd)).sum();
   for(int ii=0; ii<n_stocks; ii++) {
     // volatilities
     ou_ms<Type>(sde_mean, sde_sd, log_Vt.block(0, ii, n_obs-1, 1), dt,
   		gamma(ii+1), mu(ii+1), sigma(ii+1));
     residual<Type>(dB_V, log_Vt.block(1, ii, n_obs-1, 1), sde_mean, sde_sd);
     sde_mean = tau(ii) * dB_VP.array();
-    llik += (dnorm(dB_V, sde_mean,
+    lpost += (dnorm(dB_V, sde_mean,
   		   sqrt_dt * corr_sqm(tau(ii)), 1) - log(sde_sd)).sum();
     // assets
     bm_ms<Type>(sde_mean, sde_sd,
@@ -78,13 +80,19 @@ Type sv_common(objective_function<Type>* obj) {
       sde_mean += sde_sd.array() * dB_V.array() * rho(ii);
       sde_sd.array() *= rho_sqm;
       residual<Type>(dB_Z0, Xt.block(1, ii, n_obs-1, 1), sde_mean, sde_sd);
-      llik += (dnorm(dB_Z0, Type(0.0), sqrt_dt, 1) - log(sde_sd)).sum();
+      lpost += (dnorm(dB_Z0, Type(0.0), sqrt_dt, 1) - log(sde_sd)).sum();
     } else {
       // other assets
       sde_mean += sde_sd.array() * (rho(ii) * dB_V.array() + rho_sqm * omega(ii-1) * dB_Z0.array());
       sde_sd.array() *= rho_sqm * corr_sqm(omega(ii-1));
       residual<Type>(dB_Z, Xt.block(1, ii, n_obs-1, 1), sde_mean, sde_sd);
-      llik += (dnorm(dB_Z, Type(0.0), sqrt_dt, 1) - log(sde_sd)).sum();
+      lpost += (dnorm(dB_Z, Type(0.0), sqrt_dt, 1) - log(sde_sd)).sum();
+    }
+    // prior on rho, tau, omega
+    lpost -= logit_rho(ii) + Type(2.0) * log(Type(1.0) + eml_rho(ii));
+    lpost -= logit_tau(ii) + Type(2.0) * log(Type(1.0) + eml_tau(ii));
+    if(ii > 0) {
+      lpost -= logit_omega(ii-1) + Type(2.0) * log(Type(1.0) + eml_omega(ii-1));
     }
   }
   // add log_VT to the output
@@ -98,7 +106,7 @@ Type sv_common(objective_function<Type>* obj) {
   ADREPORT(logit_rho);
   ADREPORT(logit_tau);
   ADREPORT(logit_omega);
-  return -llik;
+  return -lpost;
 }
 #undef TMB_OBJECTIVE_PTR
 #define TMB_OBJECTIVE_PTR this

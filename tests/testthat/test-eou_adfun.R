@@ -33,7 +33,7 @@ test_that("R and TMB likelihoods agree.", {
     expect_equal(
       eou_loglik(alpha = alpha, gamma = gamma, mu = mu, sigma = sigma,
                  rho = rho,
-                 log_Vt = log_Vt, Xt = Xt, dt = dt) + rho_lpi(logit_rho),
+                 log_Vt = log_Vt, Xt = Xt, dt = dt) + cor_lprior(logit_rho),
       -eou_ad$fn(c(log_Vt, alpha,
                    log_gamma, mu, log_sigma, logit_rho))
     )

@@ -85,7 +85,9 @@ test_that("R and TMB likelihoods agree.", {
     expect_equal(
       svc_loglik(alpha = alpha, gamma = gamma, mu = mu, sigma = sigma,
                  tau = tau, rho = rho, omega = omega,
-                 log_VPt = log_VPt, log_Vt = log_Vt, Xt = Xt, dt = dt),
+                 log_VPt = log_VPt, log_Vt = log_Vt, Xt = Xt, dt = dt) +
+      sum(cor_lprior(logit_rho)) + sum(cor_lprior(logit_tau)) +
+      sum(cor_lprior(logit_omega)),
       -svc_ad$fn(c(log_Vt, alpha,
                    log_gamma, mu, log_sigma,
                    logit_rho, logit_tau, logit_omega))
