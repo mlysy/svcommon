@@ -1,7 +1,7 @@
 #' Construct a [TMB::MakeADFun()] object for the exponential Ornstein-Uhlenbeck stochastic volatility model.
 #'
 #' @param Xt Vector of `nobs` asset log prices.
-#' @param dt Interobservation time.
+#' @template param_dt
 #' @param log_Vt Optional vector of `nobs` volatilities on the log standard deviation scale.  See 'Details'.
 #' @param alpha Optional asset growth rate parameter.  See 'Details'.
 #' @param log_gamma Optional log-volatility mean reversion parameter on the log scale.  See 'Details'.
@@ -13,9 +13,14 @@
 #'
 #' @return The result of a call to [TMB::MakeADFun()].
 #'
-#' @details The exponential Ornstein-Uhlenbeck (eOU) stochastic volatility model for a single asset is given by the stochastic differential equation (SDE) ...
+#' @details The exponential Ornstein-Uhlenbeck (eOU) stochastic volatility model for a single asset is given by the stochastic differential equation (SDE)
+#' ```
+#' dlog_Vt = - gamma (log_Vt - mu) dt + sigma dB_Vt
+#' dXt = (alpha - .5 Vt^2) dt + Vt (rho dB_Vt + sqrt(1-rho^2) dB_Zt),
+#' ```
+#' where `B_Vt` and `B_Zt` are independent Brownian motions.
 #'
-#' `eou_MakeADFun` implements the Euler approximation to this SDE...
+#' `eou_MakeADFun()` implements the Euler approximation to this SDE...
 #'
 #' The optional inputs `log_Vt`, `alpha`, ..., `logit_rho` can be set to initialize optimization routines.  The default values are `alpha = 0`, ..., `logit_rho = 0`, and `log_Vt` as the log of windowed standard deviation estimates returned by [sv_init()].
 #'
@@ -143,8 +148,9 @@ check_vector <- function(..., len, default) {
 #' @param ... Named argument.  The name is used to create an informative error message.
 #' @param dim Optional required dimensions.
 #' @param default An optional default value.  Function should throw an error if `...` is missing and no default is provided.
+#' @param promote If `TRUE`, vectors are first promoted to column matrices.
 #' @noRd
-check_matrix <- function(..., dim, default) {
+check_matrix <- function(..., dim, default, promote = FALSE) {
   xname <- names(sapply(match.call(), deparse)[-1])
   xname <- xname[!(xname %in% c("dim", "default"))]
   x <- tryCatch(list(...)[[1]], error = function(e) NULL)
@@ -156,6 +162,7 @@ check_matrix <- function(..., dim, default) {
       x <- default
     } else stop("object '", xname, "' not found.")
   }
+  if(promote) x <- as.matrix(x)
   if(!is.numeric(x) || !is.matrix(x)) {
     stop("'", xname, "' must be a numeric matrix.")
   }

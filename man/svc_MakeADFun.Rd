@@ -18,7 +18,6 @@ svc_MakeADFun(
   logit_omega,
   par_list,
   iasset = "all",
-  fix_Vt = TRUE,
   ...
 )
 }
@@ -43,13 +42,9 @@ svc_MakeADFun(
 
 \item{logit_tau}{Optional vector of \code{(nasset + 1)} correlation parameters between the latent volatilities and the volatility proxy.  See 'Details'.}
 
-\item{logit_omega}{Optional vector of \code{nasset} correlation parameters between the residual asset price of the common-factor proxy and the other residual asset prices.  See 'Details'.}
-
 \item{par_list}{Optional list with named elements consisting of a subset of \code{log_Vt}, \code{alpha}, \code{log_gamma}, \code{mu}, \code{log_sigma}, \code{logit_rho}, \code{logit_tau}, and \code{logit_omega}.  Values in \code{par_list} will supercede those of the corresponding individual argument if both are provided.}
 
 \item{iasset}{Index of asset for which parameters are to be treated as non-fixed.  Either the character string "all" indicating that no parameters are fixed, or an integer in \code{-1:nasset}, where \code{-1} denotes the proxy for the volatility factor, \code{0} denotes the proxy for the asset common factor, and \code{1:nasset} denotes the remaining assets.}
-
-\item{fix_Vt}{Whether to fix the corresponding part of \code{log_Vt}.  This argument is soon to be depreciated as it gives the same result for \code{TRUE/FALSE} but the former is much faster.}
 
 \item{...}{Additional arguments to \code{\link[TMB:MakeADFun]{TMB::MakeADFun()}}.}
 }
@@ -64,7 +59,7 @@ The common-factor multivariate stochastic volatility (SVC) model for multiple as
 
 \code{svc_MakeADFun} implements the Euler approximation to this SDE...
 
-The optional inputs \code{log_Vt}, \code{alpha}, ..., \code{logit_rho} can be set to initialize optimization routines.  The default values are for each parameter vector to consist of the zero vector of the appropriate length, and the columns of \code{log_Vt} to be the log of windowed standard deviation estimates for the corresponding asset as calculated by \code{\link[=sv_init]{sv_init()}}.
+The optional latent variable and parameter inputs \code{log_Vt}, \code{alpha}, ..., \code{logit_rho} can be set to initialize optimization routines.  The default values are for each parameter vector to consist of the zero vector of the appropriate length, and the columns of \code{log_Vt} to be the log of windowed standard deviation estimates for the corresponding asset as calculated by \code{\link[=sv_init]{sv_init()}}.
 
 \code{svc_MakeADFun} is a wrapper to \code{\link[TMB:MakeADFun]{TMB::MakeADFun()}}.  This function may be called on the underlying C++ template provided by \pkg{svcommon} via\preformatted{TMB::MakeADFun(data = list(model = "sv_common", ...),
                parameters = list(...),

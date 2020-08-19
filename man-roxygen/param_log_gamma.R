@@ -1,0 +1,1 @@
+#' @param log_gamma Optional vector of `(nasset + 2)` log-volatility mean reversion parameters on the log scale.  The first two correspond to the volatility proxy and the common-factor asset's volatility, respectively.  See 'Details'.

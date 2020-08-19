@@ -2,19 +2,6 @@
 
 require(svcommon)
 
-#' Estimate parameters of an Ornstein-Uhlenbeck process.
-#'
-#' Uses least-squares on the Euler approximation.
-ou_fit <- function(Xt, dt) {
-  nobs <- length(Xt)
-  M <- lm(diff(Xt) ~ Xt[-nobs])
-  beta <- as.numeric(coef(M))
-  gamma <- -beta[2]/dt
-  mu <- beta[1]/(gamma*dt)
-  sigma <- sqrt(mean(resid(M)^2)/dt)
-  c(gamma = gamma, mu = mu, sigma = sigma)
-}
-
 ## #' @param iasset Which parameter to update
 ## #' @param new_par New parameter vector.
 ## #' @param old_par Old parameter list.
@@ -26,37 +13,6 @@ ou_fit <- function(Xt, dt) {
 ##   old_par
 ## }
 
-#' Extract the Browian increments from the SVC model.
-#'
-#' @return A list with elements:
-#' \describe{
-#'   \item{`V`}{An `nobs x (nasset+2)` matrix of the log-volatility innovations.}
-#'   \item{`X`}{An `nobs x (nasset+1)` matrix of log-asset innovations.}
-#'   \item{`Z`}{An `nobs x (naxsset+1)` matrix of residual log-asset innovations, after account for the log-volatility innovations.  That is,
-#'     ```
-#'     dB_Z = (dB_X - rho dB_V) / sqrt(1 - rho^2).
-#'     ```
-#'   }
-#' }
-svc_dB <- function(Xt, log_VPt, log_Vt, dt,
-                   alpha, log_gamma, mu, log_sigma, logit_rho) {
-  nobs <- nrow(Xt)
-  nasset <- ncol(Xt)-1
-  ind0 <- 1:(nobs-1)
-  # do all the volatilities at once
-  dB_V <- cbind(log_VPt, log_Vt)
-  dB_V <- t(apply(dB_V, 2, diff)) + exp(log_gamma) * (t(dB_V[ind0,]) - mu) * dt
-  dB_V <- dB_V / exp(log_sigma)
-  # innovations for nassets and asset common factor
-  Vt <- exp(t(log_Vt[ind0,]))
-  dB_X <- t(apply(Xt, 2, diff)) - (alpha - .5 * Vt^2) * dt
-  dB_X <- dB_X / Vt
-  # residual part after removing dB_V
-  rho <- 2/(1 + exp(-logit_rho)) - 1
-  dB_Z <- (dB_X - rho * dB_V[-1,]) / sqrt(1 - rho^2)
-  list(V = t(dB_V), X = t(dB_X), Z = t(dB_Z))
-}
-
 #' Convert correlation parameter to unconstrained scale.
 cor_trans <- function(rho) {
   nu <- .5 * (rho + 1)
@@ -65,19 +21,20 @@ cor_trans <- function(rho) {
 
 #--- data setup ----------------------------------------------------------------
 
-nobs <- 1000 # number of days
-nasset <- 5 # number of assets, excluding spx
+nobs <- 2000 # number of days
+nasset <- 10 # number of assets, excluding spx
 
 # construct the data
 dt <- 1/252
-## Xnames <- colnames(snp500)
-## Xnames <- Xnames[!Xnames %in% c("Date", "GSPC", "VIX")]
-## Xnames <- sample(Xnames, nasset)
-Xnames <- colnames(snp500)[1+1:nasset]
+Xnames <- colnames(snp500)
+Xnames <- Xnames[!Xnames %in% c("Date", "GSPC", "VIX")]
+Xnames <- sample(Xnames, nasset)
+## Xnames <- colnames(snp500)[1+1:nasset]
 Xt <- as.matrix(cbind(GSPC = snp500[1:nobs, "GSPC"],
                       snp500[1:nobs, Xnames]))
 Xt <- log(Xt)
 log_VPt <- log(as.numeric(snp500[1:nobs, "VIX"]))
+
 # initialize latent variables
 log_Vt <- log(apply(Xt, 2, sv_init, dt = dt, block_size = 10))
 # initialize parameters
@@ -107,7 +64,7 @@ curr_par$log_gamma[1] <- log(VPt_par["gamma"])
 curr_par$mu[1] <- VPt_par["mu"]
 curr_par$log_sigma[1] <- log(VPt_par["sigma"])
 
-opt_method <- "optim"
+opt_method <- "nlminb"
 
 system.time({
   for(iasset in 0:nasset) {
@@ -177,7 +134,11 @@ curr_par$logit_omega[] <- as.numeric(cor_trans(cor(dB$Z[,1], dB$Z[,-1])))
 ## curr_par2 <- curr_par
 ## curr_par3 <- curr_par
 
+nepoch <- 3
+
 system.time({
+  for(iepoch in 1:nepoch) {
+    message("--- epoch: ", iepoch, " ---")
   for(iasset in -1:nasset) {
     message("asset = ", iasset)
     svc_ad <- svc_MakeADFun(Xt = Xt, log_VPt = log_VPt, dt = dt,
@@ -224,6 +185,7 @@ system.time({
     ##                           nobs, nasset+1)
     ## message("svc_update == svc_update2: ", identical(curr_par, curr_par2))
   }
+  }
 })
 
 #--- joint optimization --------------------------------------------------------
@@ -268,7 +230,9 @@ system.time({
 
 curr_par <- svc_update(svc_ad, old_par = curr_par, iasset = iasset)
 
-sdreport(svc_ad)
+system.time({
+  est <- sdreport(svc_ad)
+})
 
 # check mode
 finfo <- numDeriv::hessian(svc_ad$fn, x = svc_ad$par)

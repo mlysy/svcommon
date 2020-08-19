@@ -1,0 +1,1 @@
+#' @param logit_rho Optional vector of `(nasset + 1)` correlation parameters between asset and volatility innovations, on the logit scale.  The first one is that of the common-factor asset proxy.  See 'Details'.

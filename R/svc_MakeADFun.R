@@ -1,19 +1,18 @@
 #' Construct a [TMB::MakeADFun()] object for the exponential Ornstein-Uhlenbeck stochastic volatility model.
 #'
-#' @param Xt Matrix of `nobs x (nasset + 1)` asset log prices, where the first column is that of the asset common-factor proxy.
-#' @param log_VPt Vector of `nobs` volatility proxy values on the log standard deviation scale.  See 'Details'.
-#' @param dt Interobservation time.
-#' @param log_Vt Optional vector of `nobs x (nasset + 1)` volatilities on the log standard deviation scale.  See 'Details'.
-#' @param alpha Optional vector of `(nasset + 1)` asset growth rate parameters.  See 'Details'.
-#' @param log_gamma Optional vector of `(nasset + 2)` log-volatility mean reversion parameters on the log scale.  The first two correspond to the volatility proxy and the common-factor asset's volatility, respectively.  See 'Details'.
-#' @param mu Optional vector of `(nasset + 2)` log-volatility mean parameters.  See 'Details'.
-#' @param log_sigma Optional vector of `(nasset + 2)` log-volatility diffusion parameters on the log scale.  See 'Details'.
-#' @param logit_rho Optional vector of `(nasset + 1)` correlation parameters between asset and volatility innovations, on the logit scale.  The first one is that of the common-factor asset proxy.  See 'Details'.
-#' @param logit_tau Optional vector of `(nasset + 1)` correlation parameters between the latent volatilities and the volatility proxy.  See 'Details'.
-#' @param logit_omega Optional vector of `nasset` correlation parameters between the residual asset price of the common-factor proxy and the other residual asset prices.  See 'Details'.
+#' @template param_Xt
+#' @template param_log_VPt
+#' @template param_dt
+#' @template param_log_Vt
+#' @template param_alpha
+#' @template param_log_gamma
+#' @template param_mu
+#' @template param_log_sigma
+#' @template param_logit_rho
+#' @template param_logit_tau
+#' @template param_logit_omega
 #' @param par_list Optional list with named elements consisting of a subset of `log_Vt`, `alpha`, `log_gamma`, `mu`, `log_sigma`, `logit_rho`, `logit_tau`, and `logit_omega`.  Values in `par_list` will supercede those of the corresponding individual argument if both are provided.
 #' @param iasset Index of asset for which parameters are to be treated as non-fixed.  Either the character string "all" indicating that no parameters are fixed, or an integer in `-1:nasset`, where `-1` denotes the proxy for the volatility factor, `0` denotes the proxy for the asset common factor, and `1:nasset` denotes the remaining assets.
-#' @param fix_Vt Whether to fix the corresponding part of `log_Vt`.  This argument is soon to be depreciated as it gives the same result for `TRUE/FALSE` but the former is much faster.
 #' @param ... Additional arguments to [TMB::MakeADFun()].
 #'
 #' @return The result of a call to [TMB::MakeADFun()].
@@ -22,7 +21,7 @@
 #'
 #' `svc_MakeADFun` implements the Euler approximation to this SDE...
 #'
-#' The optional inputs `log_Vt`, `alpha`, ..., `logit_rho` can be set to initialize optimization routines.  The default values are for each parameter vector to consist of the zero vector of the appropriate length, and the columns of `log_Vt` to be the log of windowed standard deviation estimates for the corresponding asset as calculated by [sv_init()].
+#' The optional latent variable and parameter inputs `log_Vt`, `alpha`, ..., `logit_rho` can be set to initialize optimization routines.  The default values are for each parameter vector to consist of the zero vector of the appropriate length, and the columns of `log_Vt` to be the log of windowed standard deviation estimates for the corresponding asset as calculated by [sv_init()].
 #'
 #' `svc_MakeADFun` is a wrapper to [TMB::MakeADFun()].  This function may be called on the underlying C++ template provided by \pkg{svcommon} via
 #' ```
@@ -35,7 +34,7 @@
 svc_MakeADFun <- function(Xt, log_VPt, dt,
                           log_Vt, alpha, log_gamma, mu, log_sigma, logit_rho,
                           logit_tau, logit_omega, par_list,
-                          iasset = "all", fix_Vt = TRUE, ...) {
+                          iasset = "all", ...) {
   # extract arguments from par_list
   if(!missing(par_list)) {
     for(arg_name in c("log_Vt", "alpha", "log_gamma", "mu",
@@ -68,7 +67,9 @@ svc_MakeADFun <- function(Xt, log_VPt, dt,
   par_list <- list(log_Vt = log_Vt, alpha = alpha, log_gamma = log_gamma,
                    mu = mu, log_sigma = log_sigma, logit_rho = logit_rho,
                    logit_tau = logit_tau, logit_omega = logit_omega)
-  map_list <- svc_map(iasset, nasset, nobs, fix_Vt)
+  fix_Vt <- TRUE # checked that T/F gives same result but former much faster
+  map_list <- svc_map(iasset = iasset, nasset = nasset, nobs = nobs,
+                      fix_Vt = fix_Vt)
   TMB::MakeADFun(data = list(model = "sv_common",
                              Xt = Xt, log_VPt = log_VPt, dt = dt),
                  parameters = par_list,
