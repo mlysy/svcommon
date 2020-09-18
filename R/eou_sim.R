@@ -9,12 +9,13 @@
 #' @param mu Scalar or vector of `nseries` log-volatility mean parameters.
 #' @param log_sigma Scalar or vector of `nseries` log-volatility diffusion parameters on the log scale.
 #' @param logit_rho Scalar or vector of `nseries` correlation parameters between asset and volatility innovations, on the logit scale.
+#' @param dBt An optional list with elements `V` and `Z` corresponding to matrices of size `nobs x nseries` of pre-specified Brownian innovations.  If missing these consist of iid draws from an `N(0, dt)` distribution.
 #' @return A list containing matrices `Xt` and `log_Vt` of `nobs x nseries` of eOU observations, where each column corresponds to a process observed at times `t = dt, 2dt, ..., nobs*dt`.
 #' @export
 eou_sim <- function(nobs, dt, X0, log_V0,
-                    alpha, log_gamma, mu, log_sigma, logit_rho) {
+                    alpha, log_gamma, mu, log_sigma, logit_rho, dB) {
   # allocate memory
-  nseries <- get_max(X0, log_V0, alpha, log_gamma, mu, log_sigma, logit_rho)
+  get_max(X0, log_V0, alpha, log_gamma, mu, log_sigma, logit_rho)
   Xt <- matrix(NA, nobs, nseries)
   log_Vt <- matrix(NA, nobs, nseries)
   # parameter transformations
@@ -26,8 +27,13 @@ eou_sim <- function(nobs, dt, X0, log_V0,
   Xcurr <- X0
   log_Vcurr <- log_V0
   for(ii in 1:nobs) {
-    dB_V <- sqrt(dt) * rnorm(nseries)
-    dB_Z <- sqrt(dt) * rnorm(nseries)
+    if(!missing(dB)) {
+      dB_V <- dB$V[ii,]
+      dB_Z <- dB$Z[ii,]
+    } else {
+      dB_V <- sqrt(dt) * rnorm(nseries)
+      dB_Z <- sqrt(dt) * rnorm(nseries)
+    }
     mean_V <- log_Vcurr - gamma * (log_Vcurr - mu) * dt
     sd_V <- sigma
     sd_X <- exp(log_Vcurr)
@@ -43,10 +49,10 @@ eou_sim <- function(nobs, dt, X0, log_V0,
 
 #--- helper functions ----------------------------------------------------------
 
-#' Returns the maximum size of the inputs, if they are vectors, or the leading dimension if they are arrays.
+#' Returns the maximum size of the inputs, where "size" is the length of vectors and the leading dimension of arrays.
 #' @noRd
 get_max <- function(...) {
-  N <- sapply(..., function(x) {
+  N <- sapply(list(...), function(x) {
     if(!is.array(x)) {
       n <- length(x)
     } else {

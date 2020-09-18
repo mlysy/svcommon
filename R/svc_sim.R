@@ -1,4 +1,4 @@
-#' Simulate.
+#' Simulate time series from the SVC stochastic volatility model.
 #'
 #' @param nobs Length of time series.
 #' @template param_dt
@@ -12,17 +12,25 @@
 #' @param logit_rho Vector of length `nasset + 1` or matrix of size `(nasset + 1) x nseries` correlation parameters between asset and volatility innovations, on the logit scale.  The first one is that of the common-factor asset proxy.  See 'Details'.
 #' @param logit_tau Vector of length `nasset + 1` or matrix of size `(nasset + 1) x nseries` correlation parameters between the latent volatilities and the volatility proxy.
 #' @param logit_omega Vector of length `nasset` or matrix of size `nasset x nseries` correlation parameters between the residual asset price of the common-factor proxy and the other residual asset prices.
+#' @param dBt An optional list of Brownian innovations:
+#' \describe{
+#'   \item{`VP`}{An `nobs x nseries` matrix.}
+#'   \item{`V`}{An `nobs x (nasset+1) x nseries` array.}
+#'   \item{`Z`}{An `nobs x (nasset+1) x nseries` array.}
+#' }
+#' If missing these are all iid draws from an `N(0, dt)` distribution.
 #' @return A list containing arrays `Xt` and `log_Vt` of size `nobs x (nasset + 1) x nseries`, and the matrix `log_VPt` of size `nobs x nseries` containing the simulations of `nseries` SVC processes observed at times `t = dt, 2dt, ..., nobs*dt`.
+#' @export
 svc_sim <- function(nobs, dt, X0, log_VP0, log_V0,
                     alpha, log_gamma, mu, log_sigma,
-                    logit_rho, logit_tau, logit_omega) {
+                    logit_rho, logit_tau, logit_omega, dBt) {
   # format inputs
   # transpose matrices so that each asset is a column
   X0 <- t(check_matrix(X0, promote = TRUE))
   log_V0 <- t(check_matrix(log_V0, promote = TRUE))
   alpha <- t(check_matrix(alpha, promote = TRUE))
   log_gamma <- t(check_matrix(log_gamma, promote = TRUE))
-  mu <- t(check_matrix(log_gamma, promote = TRUE))
+  mu <- t(check_matrix(mu, promote = TRUE))
   log_sigma <- t(check_matrix(log_sigma, promote = TRUE))
   logit_rho <- t(check_matrix(logit_rho, promote = TRUE))
   logit_tau <- t(check_matrix(logit_tau, promote = TRUE))
@@ -31,12 +39,15 @@ svc_sim <- function(nobs, dt, X0, log_VP0, log_V0,
   nseries <- get_max(X0, log_VP0, log_V0, alpha, log_gamma, mu, log_sigma,
                      logit_rho, logit_tau, logit_omega)
   nasset <- ncol(X0) - 1
-  Xt <- array(NA, dim = c(nobs, nasset+1, nseries))
-  log_VPt <- matrix(NA, nobs, nasset+1)
-  log_Vt <- array(NA, dim = c(nobs, nasset+1, nseries))
+  # storage:
+  # consistent with assets as last dimension.
+  # need to aperm Xt and log_Vt later
+  Xt <- array(NA, dim = c(nobs, nseries, nasset+1))
+  log_VPt <- matrix(NA, nobs, nseries)
+  log_Vt <- array(NA, dim = c(nobs, nseries, nasset+1))
   # parameter transformations
-  gamma <- exp(gamma)
-  sigma <- exp(sigma)
+  gamma <- exp(log_gamma)
+  sigma <- exp(log_sigma)
   rho <- rho_itrans(logit_rho)
   rho_sqm <- sqrt(1 - rho^2)
   tau <- rho_itrans(logit_tau)
@@ -49,27 +60,39 @@ svc_sim <- function(nobs, dt, X0, log_VP0, log_V0,
   log_VPcurr <- log_VP0
   for(ii in 1:nobs) {
     # volatility proxy
-    dB_VP <- sqrt(dt) * rnorm(nseries)
+    if(!missing(dBt)) {
+      dB_VP <- dBt$VP[ii,]
+    } else {
+      dB_VP <- sqrt(dt) * rnorm(nseries)
+    }
     mean_VP <- log_VPcurr - gamma[,1] * (log_VPcurr - mu[,1]) * dt
     sd_VP <- sigma[,1]
-    log_VPcurr <- mean_VP + sd_VP * dB_VP
     # latent volatilites
-    dB_V <- sqrt(dt) * matrix(rnorm((nasset+1)*nseries), nseries, nasset+1)
+    if(!missing(dBt)) {
+      dB_V <- t(dBt$V[ii,,])
+      dB_Z <- t(dBt$Z[ii,,])
+    } else {
+      dB_V <- sqrt(dt) * matrix(rnorm((nasset+1)*nseries), nseries, nasset+1)
+      dB_Z <- sqrt(dt) * matrix(rnorm((nasset+1)*nseries), nseries, nasset+1)
+    }
     dB_V <- tau * dB_VP + tau_sqm * dB_V
     mean_V <- log_Vcurr - gamma[,-1] * (log_Vcurr - mu[,-1]) * dt
     sd_V <- sigma[,-1]
-    log_Vcurr <- mean_V + sd_V * dB_V
     # assets
     sd_X <- exp(log_Vcurr)
     mean_X <- Xcurr + (alpha - .5 * sd_X^2) * dt
-    dB_Z <- sqrt(dt) * matrix(rnorm((nasset+1)*nseries), nseries, nasset+1)
     # correlation between asset innovations and common factor
     dB_Z[,-1] <- omega * dB_Z[,1] + omega_sqm * dB_Z[,-1]
+    # recurrence update
+    log_VPcurr <- mean_VP + sd_VP * dB_VP
+    log_Vcurr <- mean_V + sd_V * dB_V
     Xcurr <- mean_X + sd_X * (rho * dB_V + rho_sqm * dB_Z)
     # storage
-    Xt[ii,,] <- Xcurr
     log_VPt[ii,] <- log_VPcurr
     log_Vt[ii,,] <- log_Vcurr
+    Xt[ii,,] <- Xcurr
   }
-  list(Xt = Xt, log_Vt = log_Vt, log_VPt = log_VPt)
+  list(Xt = aperm(Xt, c(1,3,2)),
+       log_Vt = aperm(log_Vt, c(1,3,2)),
+       log_VPt = log_VPt)
 }

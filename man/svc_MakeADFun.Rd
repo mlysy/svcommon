@@ -42,6 +42,8 @@ svc_MakeADFun(
 
 \item{logit_tau}{Optional vector of \code{(nasset + 1)} correlation parameters between the latent volatilities and the volatility proxy.  See 'Details'.}
 
+\item{logit_omega}{Optional vector of \code{nasset} correlation parameters between the residual asset price of the common-factor proxy and the other residual asset prices.  See 'Details'.}
+
 \item{par_list}{Optional list with named elements consisting of a subset of \code{log_Vt}, \code{alpha}, \code{log_gamma}, \code{mu}, \code{log_sigma}, \code{logit_rho}, \code{logit_tau}, and \code{logit_omega}.  Values in \code{par_list} will supercede those of the corresponding individual argument if both are provided.}
 
 \item{iasset}{Index of asset for which parameters are to be treated as non-fixed.  Either the character string "all" indicating that no parameters are fixed, or an integer in \code{-1:nasset}, where \code{-1} denotes the proxy for the volatility factor, \code{0} denotes the proxy for the asset common factor, and \code{1:nasset} denotes the remaining assets.}

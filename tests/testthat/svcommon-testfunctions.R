@@ -156,3 +156,47 @@ ilogit <- function(x, min = 0, max = 1) {
 cor_lprior <- function(nu) {
   -nu - 2 * log(1 + exp(-nu))
 }
+
+#' Generate a random matrix of size `n x p`.
+rmat <- function(n, p) {
+  if(missing(p)) p <- n
+  matrix(rnorm(n*p), n, p)
+}
+
+#' Generate a random array with `dim = ...`.
+rarr <- function(...) {
+  dim <- unlist(list(...))
+  array(rnorm(prod(dim)), dim = dim)
+}
+
+#' Remove common factor.
+#'
+#' @param dB Matrix of size `nobs x nasset`.
+#' @param dB0 Vector of length `nobs`.
+#' @param logit_rho Vector of length `nasset`.
+#' @return Matrix of size `nobs x nasset` corresponding to
+#' ```
+#' (dB - rho * dB0)/sqrt(1-rho^2)
+#' ```.
+dB_res <- function(dB, dB0, logit_rho) {
+  rho <- svcommon:::rho_itrans(logit_rho)
+  rho_sqm <- sqrt(1-rho^2)
+  sweep(dB - dB0 %o% rho, 2, rho_sqm, FUN = "/")
+}
+
+#' Add common factor.
+#'
+#' Inverse of [dB_res()].
+#'
+#' @param dB Matrix of size `nobs x nasset`.
+#' @param dB0 Vector of length `nobs`.
+#' @param logit_rho Vector of length `nasset`.
+#' @return Matrix of size `nobs x nasset` corresponding to
+#' ```
+#' rho * dB0 + sqrt(1-rho^2) * dB
+#' ```.
+dB_obs <- function(dB, dB0, logit_rho) {
+  rho <- svcommon:::rho_itrans(logit_rho)
+  rho_sqm <- sqrt(1-rho^2)
+  dB0 %o% rho + sweep(dB, 2, rho_sqm, FUN = "*")
+}

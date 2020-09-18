@@ -69,4 +69,7 @@ test_that("check_matrix works on correct input", {
   expect_equal(check_matrix(a = a, dim = 1:2, default = 6), t(c(6,6)))
   expect_equal(check_matrix(a = t(5+1:3), dim = c(1,3)), t(5+1:3))
   expect_equal(check_matrix(a = t(1:3), default = 5), t(1:3))
+  expect_equal(check_matrix(a = 1:3, promote = TRUE), as.matrix(1:3))
+  expect_equal(check_matrix(a = 2:5, dim = c(4,1), promote = TRUE),
+               as.matrix(2:5))
 })
