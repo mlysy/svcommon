@@ -4,63 +4,15 @@ author: |
   | Martin Lysy
   | University of Waterloo
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
+output: 
+  rmarkdown::html_vignette:
+    includes:
+      in_header: preamble.html
 vignette: >
   %\VignetteIndexEntry{Fast Inference for Common-Factor Stochastic Volatility Models}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
-
-<!-- latex macros -->
-<script type="text/x-mathjax-config">
-  MathJax.Hub.Config({
-      TeX: {
-	  Macros: {
-	      bm: ["\\boldsymbol{#1}",1],
-	      tx: ["\\textrm{#1}",1],
-	      rv: ["#2_{#1},\\ldots,#2_{#3}",3,"1"],
-	      iid: ["\\overset{\\;\\tx{iid}\\;}{\\sim}"],
-	      ind: ["\\overset{\\:\\tx{ind}\\:}{\\sim}"],
-	      var: ["\\operatorname{var}"],
-	      cov: ["\\operatorname{cov}"],
-	      cor: ["\\operatorname{cor}"],
-	      N: ["\\mathcal{N}"],
-	      ud: ["\\mathop{}\\!\\mathrm{d}"],
-	      der: ["\\frac{\\ud^{#1}}{\\ud{#2}^{#1}}", 2, ""],
-	      del: ["\\frac{\\partial^{#1}}{\\partial{#2}^{#1}}", 2, ""],
-	      fder: ["\\frac{\\ud^{#1}#3}{\\ud{#2}^{#1}}", 3, ""],
-	      fdel: ["\\frac{\\partial^{#1}#3}{\\partial{#2}^{#1}}", 3, ""],
-	      hess: ["\\frac{\\partial^2}{\\partial{#1}\\partial{#1}'}", 1],
-	      fhess: ["\\frac{\\partial^2#2}{\\partial{#1}\\partial{#1}'}", 2],
-	      ww: ["{\\bm{w}}"],
-	      xx: ["{\\bm{x}}"],
-	      yy: ["{\\bm{y}}"],
-	      zz: ["{\\bm{z}}"],
-		  VV: ["{\\bm{V}}"],
-	      XX: ["{\\bm{X}}"],
-	      YY: ["{\\bm{Y}}"],
-	      ZZ: ["{\\bm{Z}}"],
-	      aal: ["{\\bm{\\alpha}}"],
-	      bbe: ["{\\bm{\\beta}}"],
-	      gga: ["{\\bm{\\gamma}}"],
-	      eet: ["{\\bm{\\eta}}"],
-	      lla: ["{\\bm{\\lambda}}"],
-	      mmu: ["{\\bm{\\mu}}"],
-	      pph: ["{\\bm{\\phi}}"],
-	      pps: ["{\\bm{\\psi}}"],
-	      rrh: ["{\\bm{\\rho}}"],
-	      ssi: ["{\\bm{\\sigma}}"],
-	      tta: ["{\\bm{\\tau}}"],
-	      tth: ["{\\bm{\\theta}}"],
-	      GGa: ["{\\bm{\\Gamma}}"],
-	      SSi: ["{\\bm{\\Sigma}}"],
-	      TTh: ["{\\bm{\\Theta}}"],
-		  elL: ["\\ell_{\\mathrm{Lap}}"]
-	  }
-      }
-  });
-</script>
-
 
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
@@ -102,19 +54,24 @@ where $\ud B_{0t}^V = \tau_0 \ud B_{\star t}^V + \sqrt{1 - \tau_0^2} \ud B_{0t}^
 # Parameter Estimation
 
 ```{r load_data, include = FALSE, message = FALSE}
+# required packages
 library(svcommon)
+library(mvtnorm) # multivariate normal draws
+library(tidyr); library(dplyr) # data frame manipulation
+library(ggplot2) # plotting
+
 dim(snp500) # automatically loaded with svcommon
 snp500[1:6, ncol(snp500)-8 + 1:8]
 ```
 
 **svcommon** uses the Laplace approximation with automatic differentiation provided by the **TMB** package to efficiently marginalize over the latent volatilities $\VV$ in order to calculate $\elL(\tth \mid \XX, \VV_0) \approx \log p(\XX, \VV_0 \mid \tth)$ and its gradient with respect to the model parameters $\tth$.  It then uses a block coordinate descent algorithm with good initial values to very quickly converge to the approximate MLE $\hat \tth = \operatorname{arg\,max}_{\tth} \elL(\XX, \VV_0 \mid \tth)$, about two orders of magnitude faster than exact inference methods.  The procedure is illustrated with a dataset consisting of `r nrow(snp500)` daily closing prices of `r ncol(snp500)-2` constituents of the S&P500, the index value itself (GSPC), and its volatility index (VIX).
 
-```{r ref.label = "load_data"}
+```{r disp_data, ref.label = "load_data"}
 ```
 
 ## Initialization
 
-Initial guesses for the parameters of the common-factor stochastic volatility (SVC) model are obtain from marginal fits of the exponential Ornstein-Uhlenbeck (EOU) model to each asset and to GSPC.  As we shall see, the marginal fit are extremely fast and stable, even with parameters arbitrarily initialized to zero.
+Initial guesses for the parameters of the common-factor stochastic volatility (SVC) model are obtained from marginal fits of the exponential Ornstein-Uhlenbeck (EOU) model to each asset and to GSPC.  To perform the optimization, the R built-in **stats* package provides the optimiziers `stats::optim()`, `stats::nlm()`, and `stats::nlminb()`.  Various experiments with SVC modeling indicate that `statss:nlminb()` is by far the fastest, with little difference in numerical accuracy. Indeed, the marginal fits are extremely fast and stable, even with the (log or logit) parameters arbitrarily initialized to zero.
 
 ```{r init_opt}
 # problem dimensions
@@ -149,30 +106,34 @@ curr_par <- list(log_Vt = log_Vt,
                  logit_tau = logit_tau,
                  logit_omega = logit_omega)
 
-# initialize parameters of each individual asset
-# TODO: include VIX (though this probably won't add much)
-for(iasset in 0:nasset) {
-  message("asset = ", iasset)
-  # construct model object
-  eou_ad <- eou_MakeADFun(Xt = Xt[,iasset+1], dt = dt,
-                          alpha = curr_par$alpha[iasset+1],
-                          log_Vt = curr_par$log_Vt[,iasset+1],
-                          log_gamma = curr_par$log_gamma[iasset+2],
-                          mu = curr_par$mu[iasset+2],
-                          log_sigma = curr_par$log_sigma[iasset+2],
-                          logit_rho = curr_par$logit_rho[iasset+1])
-  # optimize with quasi-newton method
-  tm <- system.time({
-    opt <- optim(par = eou_ad$par,
-                 fn = eou_ad$fn,
-                 gr = eou_ad$gr,
-                 method = "BFGS", control = list(trace = 1))
-  })
-  message("Time: ", round(tm[3], 2), " seconds")
-  # update parameters
-  curr_par <- svc_update(eou_ad, old_par = curr_par, iasset = iasset)
-}
+# optimization control parameters
+opt_control <- list(eval.max = 1000, iter.max = 1000, trace = 10)
 
+# initialize parameters of each individual asset
+tm_tot <- system.time({
+  for(iasset in 0:nasset) {
+    message("asset = ", iasset)
+    # construct model object
+    eou_ad <- eou_MakeADFun(Xt = Xt[,iasset+1], dt = dt,
+                            alpha = curr_par$alpha[iasset+1],
+                            log_Vt = curr_par$log_Vt[,iasset+1],
+                            log_gamma = curr_par$log_gamma[iasset+2],
+                            mu = curr_par$mu[iasset+2],
+                            log_sigma = curr_par$log_sigma[iasset+2],
+                            logit_rho = curr_par$logit_rho[iasset+1])
+    # optimize with quasi-newton method
+    tm <- system.time({
+      opt <- nlminb(start = eou_ad$par,
+                    objective = eou_ad$fn,
+                    gradient = eou_ad$gr,
+                    control = opt_control)
+    })
+    message("Time: ", round(tm[3], 2), " seconds")
+    # update parameters
+    curr_par <- svc_update(eou_ad, old_par = curr_par, iasset = iasset)
+  }
+})
+message("Total Time: ", round(tm_tot[3], 2), " seconds.")
 ```
 
 ## Blockwise Coordinate Descent
@@ -184,85 +145,104 @@ Here, `nepoch` denotes the number of cycles through all assets.  For this datase
 ```{r block_coord}
 nepoch <- 3
 
-for(iepoch in 1:nepoch) {
-  message("epoch = ", iepoch)
-  for(iasset in -1:nasset) {
-    message("asset = ", iasset)
-    svc_ad <- svc_MakeADFun(Xt = Xt, log_VPt = log_VPt, dt = dt,
-                            par_list = curr_par,
-                            iasset = iasset)
-    tm <- system.time({
-      opt <- optim(par = svc_ad$par,
-                   fn = svc_ad$fn,
-                   gr = svc_ad$gr,
-                   method = "BFGS", control = list(trace = 1))
-    })
-    message("Time: ", round(tm[3], 2), " seconds")
-    curr_par <- svc_update(svc_ad, old_par = curr_par, iasset = iasset)
+tm_tot <- system.time({
+  for(iepoch in 1:nepoch) {
+    message("epoch = ", iepoch)
+    for(iasset in -1:nasset) {
+      message("asset = ", iasset)
+      svc_ad <- svc_MakeADFun(Xt = Xt, log_VPt = log_VPt, dt = dt,
+                              par_list = curr_par,
+                              iasset = iasset)
+      tm <- system.time({
+        opt <- nlminb(start = svc_ad$par,
+                      objective = svc_ad$fn,
+                      gradient = svc_ad$gr,
+                      control = opt_control)
+      })
+      message("Time: ", round(tm[3], 2), " seconds")
+      curr_par <- svc_update(svc_ad, old_par = curr_par, iasset = iasset)
+    }
   }
-}
+})
+message("Total Time: ", round(tm_tot[3], 2), " seconds.")
 ```
 
-## Final Touches
+For good measure, let's finish with a joint optimization over all parameters.  This should be comparatively fast now that the optimizer has good starting values^[For this particular dataset, it is possible to skip the initialization and blockwise coordinate descent steps, provided the `iter.max` parameter to `stats::nlminb()` is large enough.].
 
-Let's take a look at the parameter estimates.
-
-```{r}
-# make all parameters non-fixed
-svc_ad <- svc_MakeADFun(Xt = Xt, log_VPt = log_VPt, dt = dt,
-                        par_list = curr_par,
-                        iasset = "all")
-sdreport(svc_ad)
-```
-
-We can see that a couple of the correlation values are extremely large, leading to large loss of numerical accuracy in the hessian calculation.  So let's try re-optimizing over the affected assets with the corresponding correlation set to zero.  For good measure, we'll also finish with a joint optimization over all parameters.  This should be comparatively fast now that the optimizer has good starting values.
-
-```{r}
-# re-initialized bad correlations
-curr_par$logit_tau[1] <- 0
-## curr_par$logit_omega[c(1,5)] <- 0
-
-# rerun the affected block optimizations
-bad_assets <- 0 # note the indexing
-for(iasset in bad_assets) {
-  message("asset = ", iasset)
-  svc_ad <- svc_MakeADFun(Xt = Xt, log_VPt = log_VPt, dt = dt,
-                          par_list = curr_par,
-                          iasset = iasset)
-  tm <- system.time({
-    opt <- optim(par = svc_ad$par,
-                 fn = svc_ad$fn,
-                 gr = svc_ad$gr,
-                 method = "BFGS", control = list(trace = 1))
-  })
-  message("Time: ", round(tm[3], 2), " seconds")
-  curr_par <- svc_update(svc_ad, old_par = curr_par, iasset = iasset)
-}
-
-# global parameter optimization
+```{r joint_opt}
+# joint parameter optimization
 iasset <- "all"
 svc_ad <- svc_MakeADFun(Xt = Xt, log_VPt = log_VPt, dt = dt,
                         par_list = curr_par,
                         iasset = iasset)
 tm <- system.time({
-  opt <- optim(par = svc_ad$par,
-               fn = svc_ad$fn,
-               gr = svc_ad$gr,
-               method = "BFGS", control = list(trace = 1))
+  opt <- nlminb(start = svc_ad$par,
+                objective = svc_ad$fn,
+                gradient = svc_ad$gr,
+                control = opt_control)
 })
+message("Time: ", round(tm[3], 2), " seconds")
 curr_par <- svc_update(svc_ad, old_par = curr_par, iasset = iasset)
 ```
 
-Now let's check the fitted results again:
+## Bayesian Estimation and Forecasting
 
-```{r}
-svc_rep <- sdreport(svc_ad)
-svc_rep
+Let's take a look at the parameter estimates.
+
+```{r summary}
+system.time({
+  svc_est <- TMB::sdreport(svc_ad)
+})
+knitr::kable(summary(svc_est, select = "report"), digits = 2)
 ```
+All parameter estimates have reasonable precision, except notably $\alpha_i$, the long-term trend in asset $i$, which is notoriously difficult to estimate.  Also included are stimates of $\log V_{iT}$, the latent volatility on the last day $t = T$ in the observed data.  This can be useful for Bayesian forecasting, which can be conducted using the following method:
 
-Some of the estimates are quite poor, but with only ``nobs = `r nobs`` observations it's very difficult to estimate the correlation between the latent variables and observed quantities.  A better solution is perhaps to put a prior on the correlations keeping them away from senseless values.  For illustration purposes we'll stop here and store the MLE and its variance estimator.
+1.  Let $p(\tth, \log V_{0T}, \ldots, \log V_{qT} \mid \XX, \VV_0)$ denote the posterior distribution of the parameters and terminal volatilities for $q$ assets and the common asset factor with the Lebesgue prior^[Since the prior is flat on the original scale but optimization is done on the transformed scale ($\log \gamma_i$, $\logit \rho_i$, etc.) the optimizer provides the correct Bayesian mode but a penalized maximum likelihood.  SVC experiments indicate that penalization considerably improves the estimation of correlation parameters, which otherwise tend to drift off to boundary values.] $\pi(\tth) \propto 1$.  By the mode-quadrature approximation, this posterior is taken to be normal with mean and variance obtained from `TMB::sdreport()`.
 
-```{r}
-theta_mle <- svc_rep$par.fixed
-theta_var <- svc_rep$cov.fixed
+2.  Let $p(X_{0,T+d}, \ldots, X_{q,T+d}, \log V_{0,T+d}, \ldots, \log V_{q,T+d} \mid \XX, \VV_0)$ denote the Bayesian forecast distribution for assets and volatilities on day $t = T+d$.  We can simulate from this distribution by combining draws from the multivariate normal approximation to $p(\tth, \log V_{0T}, \ldots, \log V_{qT} \mid \XX, \VV_0)$ with forward simulation from the SVC model with `svc_sim()`.
+
+An illustration of this procedure is provided below.
+
+```{r forecast, fig.width = 7, fig.height = 4}
+nfwd <- 10 # number of days to forecast
+nsim <- 1e4 # number of simulated forecasts
+
+# sample from the mode-quadrature approximation
+curr_post <- mvtnorm::rmvnorm(nsim,
+                              mean = svc_est$value,
+                              sigma = svc_est$cov)
+
+# convert to appropriate inputs to svc_sim
+sim_args <- sapply(c("alpha", "log_gamma", "mu", "log_sigma", "logit_rho",
+                       "logit_tau", "logit_omega", "log_VT"),
+                     function(nm) {
+                       t(curr_post[,colnames(curr_post) == nm])
+                     }, simplify = FALSE)
+names(sim_args)[8] <- "log_V0" # rename log_VT
+# remaining arguments
+sim_args <- c(sim_args,
+              list(X0 = Xt[nobs,],
+                   log_VP0 = log_VPt[nobs],
+                   nobs = nfwd, dt = dt))
+# forward simulation
+fwd_post <- do.call(svc_sim, args = sim_args)
+
+# plot posteriors on day t = nobs + nfwd
+# format data
+X_fwd <- t(fwd_post$Xt[nfwd,,])
+colnames(X_fwd) <- colnames(Xt)
+X_fwd <- data.frame(type = "X", X_fwd)
+V_fwd <- exp(t(fwd_post$log_Vt[nfwd,,]))
+colnames(V_fwd) <- colnames(log_Vt)
+V_fwd <- data.frame(type = "V", V_fwd)
+XV_fwd <- rbind(X_fwd, V_fwd)
+# plot
+XV_fwd %>%
+  as_tibble() %>%
+  pivot_longer(GSPC:USB, names_to = "asset", values_to = "value") %>%
+  mutate(asset = factor(asset, levels = colnames(Xt))) %>%
+  ggplot(aes(x = value)) +
+  geom_density() +
+  facet_wrap(~ type:asset, scales = "free", nrow = 2) +
+  xlab("") + ylab("Posterior Forecast Distribution")
 ```

@@ -56,15 +56,14 @@ Type sv_eou(objective_function<Type>* obj) {
   lpost += (dnorm(dB_Z, Type(0.0), sqrt_dt, 1) - log(sde_sd)).sum();
   // prior on rho
   lpost -= logit_rho + Type(2.0) * log(Type(1.0) + eml_rho);
-  // add log_VT to the output
-  log_VT = log_Vt(n_obs-1);
-  ADREPORT(log_VT);
-  // add all parameters to report
+  // output the joint estimate of all parameters and log_VT
   ADREPORT(alpha);
   ADREPORT(log_gamma);
   ADREPORT(mu);
   ADREPORT(log_sigma);
   ADREPORT(logit_rho);
+  log_VT = log_Vt(n_obs-1);
+  ADREPORT(log_VT);
   return -lpost;
 }
 #undef TMB_OBJECTIVE_PTR

@@ -24,24 +24,33 @@
 svc_sim <- function(nobs, dt, X0, log_VP0, log_V0,
                     alpha, log_gamma, mu, log_sigma,
                     logit_rho, logit_tau, logit_omega, dBt) {
+  # problem dimensions
+  nseries <- get_max(X0, t(log_VP0), log_V0, alpha, log_gamma, mu, log_sigma,
+                     logit_rho, logit_tau, logit_omega, tvec = FALSE)
+  nasset <- if(is.vector(X0)) length(X0) - 1 else nrow(X0) - 1
   # format inputs
   # transpose matrices so that each asset is a column
-  X0 <- t(check_matrix(X0, promote = TRUE))
-  log_V0 <- t(check_matrix(log_V0, promote = TRUE))
-  alpha <- t(check_matrix(alpha, promote = TRUE))
-  log_gamma <- t(check_matrix(log_gamma, promote = TRUE))
-  mu <- t(check_matrix(mu, promote = TRUE))
-  log_sigma <- t(check_matrix(log_sigma, promote = TRUE))
-  logit_rho <- t(check_matrix(logit_rho, promote = TRUE))
-  logit_tau <- t(check_matrix(logit_tau, promote = TRUE))
-  logit_omega <- t(check_matrix(logit_omega, promote = TRUE))
+  X0 <- t(check_matrix(X0 = X0, dim = c(nasset+1, nseries), promote = TRUE))
+  log_VP0 <- check_vector(log_VP0 = log_VP0, len = nseries, promote = TRUE)
+  log_V0 <- t(check_matrix(log_V0 = log_V0,
+                           dim = c(nasset+1, nseries), promote = TRUE))
+  alpha <- t(check_matrix(alpha = alpha, dim = c(nasset+1, nseries),
+                          promote = TRUE))
+  log_gamma <- t(check_matrix(log_gamma = log_gamma,
+                              dim = c(nasset+2, nseries), promote = TRUE))
+  mu <- t(check_matrix(mu = mu,
+                       dim = c(nasset+2, nseries), promote = TRUE))
+  log_sigma <- t(check_matrix(log_sigma = log_sigma,
+                              dim = c(nasset+2, nseries), promote = TRUE))
+  logit_rho <- t(check_matrix(logit_rho = logit_rho,
+                              dim = c(nasset+1, nseries), promote = TRUE))
+  logit_tau <- t(check_matrix(logit_tau = logit_tau,
+                              dim = c(nasset+1, nseries), promote = TRUE))
+  logit_omega <- t(check_matrix(logit_omega = logit_omega,
+                                dim = c(nasset, nseries), promote = TRUE))
   # allocate memory
-  nseries <- get_max(X0, log_VP0, log_V0, alpha, log_gamma, mu, log_sigma,
-                     logit_rho, logit_tau, logit_omega)
-  nasset <- ncol(X0) - 1
-  # storage:
-  # consistent with assets as last dimension.
-  # need to aperm Xt and log_Vt later
+  # storage is consistent with assets as last dimension.
+  # will aperm Xt and log_Vt later
   Xt <- array(NA, dim = c(nobs, nseries, nasset+1))
   log_VPt <- matrix(NA, nobs, nseries)
   log_Vt <- array(NA, dim = c(nobs, nseries, nasset+1))

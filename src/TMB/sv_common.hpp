@@ -95,10 +95,7 @@ Type sv_common(objective_function<Type>* obj) {
       lpost -= logit_omega(ii-1) + Type(2.0) * log(Type(1.0) + eml_omega(ii-1));
     }
   }
-  // add log_VT to the output
-  log_VT = log_Vt.row(n_obs-1);
-  ADREPORT(log_VT);
-  // add all parameters to report
+  // output the joint estimate of all parameters and log_VT
   ADREPORT(alpha);
   ADREPORT(log_gamma);
   ADREPORT(mu);
@@ -106,6 +103,8 @@ Type sv_common(objective_function<Type>* obj) {
   ADREPORT(logit_rho);
   ADREPORT(logit_tau);
   ADREPORT(logit_omega);
+  log_VT = log_Vt.row(n_obs-1);
+  ADREPORT(log_VT);
   return -lpost;
 }
 #undef TMB_OBJECTIVE_PTR

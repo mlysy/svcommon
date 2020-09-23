@@ -44,6 +44,7 @@ check_scalar <- function(..., default) {
 #' @param ... Named argument.  The name is used to create an informative error message.
 #' @param len Optional required length of vector.
 #' @param default An optional default value.
+#' @param promote If `TRUE` and `len` is provided, scalars are replicated as necessary.
 #' @details Function should behave as follows:
 #' - Error if `...` missing and no `default` provided.
 #' - Error if `...` not a numeric vector.
@@ -52,7 +53,7 @@ check_scalar <- function(..., default) {
 #' - If `default` is a scalar and `len` is provided, `default` is set to `rep(default, len)` and the above checks are made.
 #' - If no errors encountered, return value.
 #' @noRd
-check_vector <- function(..., len, default) {
+check_vector <- function(..., len, default, promote = FALSE) {
   ## if(is.na(dots)) {
   ##   if(length(default) == 1) default <- rep(default, len)
   ##   return(default)
@@ -60,7 +61,7 @@ check_vector <- function(..., len, default) {
   ## xname <- names(dots)
   ## x <- dots[[1]]
   xname <- names(sapply(match.call(), deparse)[-1])
-  xname <- xname[!(xname %in% c("len", "default"))]
+  xname <- xname[!(xname %in% c("len", "default", "promote"))]
   x <- tryCatch(list(...)[[1]], error = function(e) NULL)
   if(is.null(x)) {
     if(!missing(default)) {
@@ -70,6 +71,9 @@ check_vector <- function(..., len, default) {
   }
   if(!is.numeric(x) || !is.vector(x)) {
     stop("'", xname, "' must be a numeric vector.")
+  }
+  if(promote && !missing(len) && (length(x) == 1)) {
+      x <- rep(x, len)
   }
   if(!missing(len) && (length(x) != len)) {
     stop("'", xname, "' has incorrect length.")
@@ -82,12 +86,12 @@ check_vector <- function(..., len, default) {
 #' @param ... Named argument.  The name is used to create an informative error message.
 #' @param dim Optional required dimensions.
 #' @param default An optional default value.
-#' @param promote If `TRUE`, vectors are first promoted to column matrices.
+#' @param promote If `TRUE`, vectors are first promoted to column matrices.  If `dim` is specified, vectors of length `dim[1]` are replicated as needed.
 #' @details Essentially the same behavior as [check_vector()].
 #' @noRd
 check_matrix <- function(..., dim, default, promote = FALSE) {
   xname <- names(sapply(match.call(), deparse)[-1])
-  xname <- xname[!(xname %in% c("dim", "default"))]
+  xname <- xname[!(xname %in% c("dim", "default", "promote"))]
   x <- tryCatch(list(...)[[1]], error = function(e) NULL)
   if(is.null(x)) {
     if(!missing(default)) {
@@ -97,7 +101,14 @@ check_matrix <- function(..., dim, default, promote = FALSE) {
       x <- default
     } else stop("object '", xname, "' not found.")
   }
-  if(promote) x <- as.matrix(x)
+  if(promote) {
+    if(!missing(dim) && is.vector(x) && (length(x) == dim[1])) {
+      dn <- if(is.null(names(x))) NULL else list(names(x), NULL)
+      x <- matrix(x, nrow = dim[1], ncol = dim[2], dimnames = dn)
+    } else {
+      x <- as.matrix(x)
+    }
+  }
   if(!is.numeric(x) || !is.matrix(x)) {
     stop("'", xname, "' must be a numeric matrix.")
   }

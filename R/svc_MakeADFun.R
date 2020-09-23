@@ -67,7 +67,10 @@ svc_MakeADFun <- function(Xt, log_VPt, dt,
   par_list <- list(log_Vt = log_Vt, alpha = alpha, log_gamma = log_gamma,
                    mu = mu, log_sigma = log_sigma, logit_rho = logit_rho,
                    logit_tau = logit_tau, logit_omega = logit_omega)
-  fix_Vt <- TRUE # checked that T/F gives same result but former much faster
+  # for blockwise coord descent,
+  # checked that T and F gives same result but former much faster
+  # for joint optimization unfix everything
+  fix_Vt <- iasset != "all"
   map_list <- svc_map(iasset = iasset, nasset = nasset, nobs = nobs,
                       fix_Vt = fix_Vt)
   TMB::MakeADFun(data = list(model = "sv_common",

@@ -35,6 +35,7 @@ test_that("check_vector errors on incorrect input", {
   err <- "'a' has incorrect length."
   expect_error(check_vector(a = a, len = 2, default = 1:3), regexp = err)
   expect_error(check_vector(a = 1:2, len = 1), regexp = err)
+  expect_error(check_vector(a = 1, len = 2), regexp = err)
 })
 
 test_that("check_vector works on correct input", {
@@ -43,6 +44,7 @@ test_that("check_vector works on correct input", {
   expect_equal(check_vector(a = a, len = 2, default = 6), c(6,6))
   expect_equal(check_vector(a = 1:3, len = 3), 1:3)
   expect_equal(check_vector(a = 1:3, default = 5), 1:3)
+  expect_equal(check_vector(a = 1, len = 3, promote = TRUE), rep(1, 3))
 })
 
 test_that("check_matrix errors on missing input", {
@@ -72,4 +74,6 @@ test_that("check_matrix works on correct input", {
   expect_equal(check_matrix(a = 1:3, promote = TRUE), as.matrix(1:3))
   expect_equal(check_matrix(a = 2:5, dim = c(4,1), promote = TRUE),
                as.matrix(2:5))
+  expect_equal(check_matrix(a = 2:5, dim = c(4,2), promote = TRUE),
+               cbind(2:5, 2:5))
 })
