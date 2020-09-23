@@ -4,7 +4,7 @@
 \alias{eou_sim}
 \title{Simulate time series from the exponential Ornstein-Uhlenbeck stochastic volatility model.}
 \usage{
-eou_sim(nobs, dt, X0, log_V0, alpha, log_gamma, mu, log_sigma, logit_rho, dB)
+eou_sim(nobs, dt, X0, log_V0, alpha, log_gamma, mu, log_sigma, logit_rho, dBt)
 }
 \arguments{
 \item{nobs}{Length of time series.}

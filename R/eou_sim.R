@@ -13,7 +13,7 @@
 #' @return A list containing matrices `Xt` and `log_Vt` of `nobs x nseries` of eOU observations, where each column corresponds to a process observed at times `t = dt, 2dt, ..., nobs*dt`.
 #' @export
 eou_sim <- function(nobs, dt, X0, log_V0,
-                    alpha, log_gamma, mu, log_sigma, logit_rho, dB) {
+                    alpha, log_gamma, mu, log_sigma, logit_rho, dBt) {
   # allocate memory
   nseries <- get_max(X0, log_V0, alpha, log_gamma, mu, log_sigma, logit_rho,
                      tvec = TRUE)
