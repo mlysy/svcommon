@@ -1,2 +1,5 @@
 *.html
 *.R
+!preamble.html
+svcommon_files
+svcommon_cache
