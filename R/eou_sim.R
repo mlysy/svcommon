@@ -28,9 +28,9 @@ eou_sim <- function(nobs, dt, X0, log_V0,
   Xcurr <- X0
   log_Vcurr <- log_V0
   for(ii in 1:nobs) {
-    if(!missing(dB)) {
-      dB_V <- dB$V[ii,]
-      dB_Z <- dB$Z[ii,]
+    if(!missing(dBt)) {
+      dB_V <- dBt$V[ii,]
+      dB_Z <- dBt$Z[ii,]
     } else {
       dB_V <- sqrt(dt) * rnorm(nseries)
       dB_Z <- sqrt(dt) * rnorm(nseries)

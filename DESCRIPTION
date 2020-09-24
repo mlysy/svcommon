@@ -1,6 +1,6 @@
 Package: svcommon
 Title: Fast Inference for Common-Factor Stochastic Volatility Models
-Version: 0.0.0.9000
+Version: 0.1.0
 Authors@R: 
     person(given = "Martin",
            family = "Lysy",
@@ -10,6 +10,8 @@ Description: Provides various tools for estimating the parameters of the common-
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
+URL: https://github.com/mlysy/svcommon
+BugReports: https://github.com/mlysy/svcommon/issues
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.1.1
 LinkingTo: 

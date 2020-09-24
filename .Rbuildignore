@@ -1,4 +1,5 @@
 ^doc$
 ^Meta$
-^vignettes/svcommon_cache$
 ^man-roxygen$
+^pkgdown$
+^vignettes/_site\.yml$

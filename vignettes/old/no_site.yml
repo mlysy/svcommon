@@ -1,0 +1,7 @@
+output:
+  rmarkdown::html_document:
+    theme: readable
+    toc: true
+    includes:
+      in_header: preamble.html
+
