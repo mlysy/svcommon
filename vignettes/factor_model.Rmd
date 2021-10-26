@@ -1,0 +1,140 @@
+---
+title: "Efficient Computations for a Gaussian Factor Model"
+author: |
+  | Martin Lysy
+  | University of Waterloo
+date: "`r Sys.Date()`"
+output: 
+  bookdown::html_vignette2:
+pkgdown:
+  as_is: true
+params:
+  load_calcs: TRUE
+vignette: >
+  %\VignetteIndexEntry{Efficient Computations for a Gaussian Factor Model}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+<!-- <\!-- equation numbering -\-> -->
+<!-- <script type="text/x-mathjax-config"> -->
+<!-- MathJax.Hub.Config({ -->
+<!--   TeX: { equationNumbers: { autoNumber: "AMS" } } -->
+<!-- }); -->
+<!-- </script> -->
+
+<!-- latex macros -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      TeX: {
+	  Macros: {
+	      bm: ["\\boldsymbol{#1}",1],
+	      tx: ["\\textrm{#1}",1],
+	      rv: ["#2_{#1},\\ldots,#2_{#3}",3,"1"],
+	      iid: ["\\overset{\\;\\tx{iid}\\;}{\\sim}"],
+	      ind: ["\\overset{\\:\\tx{ind}\\:}{\\sim}"],
+	      var: ["\\operatorname{var}"],
+	      cov: ["\\operatorname{cov}"],
+	      cor: ["\\operatorname{cor}"],
+	      diag: ["\\operatorname{diag}"],
+	      logit: ["\\operatorname{logit}"],
+	      ilogit: ["\\operatorname{ilogit}"],
+	      N: ["\\mathcal{N}"],
+	      elL: ["\\mathcal{L}"],
+	      ud: ["\\mathop{}\\!\\mathrm{d}"],
+	      der: ["\\frac{\\ud^{#1}}{\\ud{#2}^{#1}}", 2, ""],
+	      del: ["\\frac{\\partial^{#1}}{\\partial{#2}^{#1}}", 2, ""],
+	      fder: ["\\frac{\\ud^{#1}#3}{\\ud{#2}^{#1}}", 3, ""],
+	      fdel: ["\\frac{\\partial^{#1}#3}{\\partial{#2}^{#1}}", 3, ""],
+	      hess: ["\\frac{\\partial^2}{\\partial{#1}\\partial{#1}'}", 1],
+	      fhess: ["\\frac{\\partial^2#2}{\\partial{#1}\\partial{#1}'}", 2],
+		  bO: ["{\\mathcal{O}}"],
+		  bz: ["{\\bm{0}}"],
+		  Id: ["{\\bm{I}}"],
+	      ww: ["{\\bm{w}}"],
+	      xx: ["{\\bm{x}}"],
+	      yy: ["{\\bm{y}}"],
+	      zz: ["{\\bm{z}}"],
+	      VV: ["{\\bm{V}}"],
+	      XX: ["{\\bm{X}}"],
+	      YY: ["{\\bm{Y}}"],
+	      ZZ: ["{\\bm{Z}}"],
+	      aal: ["{\\bm{\\alpha}}"],
+	      bbe: ["{\\bm{\\beta}}"],
+	      gga: ["{\\bm{\\gamma}}"],
+	      eet: ["{\\bm{\\eta}}"],
+	      lla: ["{\\bm{\\lambda}}"],
+	      mmu: ["{\\bm{\\mu}}"],
+	      pph: ["{\\bm{\\phi}}"],
+	      pps: ["{\\bm{\\psi}}"],
+	      rrh: ["{\\bm{\\rho}}"],
+	      ssi: ["{\\bm{\\sigma}}"],
+	      tta: ["{\\bm{\\tau}}"],
+	      tth: ["{\\bm{\\theta}}"],
+	      GGa: ["{\\bm{\\Gamma}}"],
+	      SSi: ["{\\bm{\\Sigma}}"],
+	      TTh: ["{\\bm{\\Theta}}"],
+	      PPs: ["{\\bm{\\Psi}}"],
+	      LLa: ["{\\bm{\\Lambda}}"],
+	      OOm: ["{\\bm{\\Omega}}"],
+		  Eps: ["{\\bm{\\varepsilon}}"]
+	  }
+      }
+  });
+</script>
+
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Setup
+
+
+The Gaussian factor model for $\XX = (X_1, \ldots, X_q)$ is given by
+\begin{equation}
+\XX_{q\times 1} = \LLa_{q \times k} \ZZ_{k \times 1} + \Eps_{q\times 1},
+(\#eq:gfm)
+\end{equation}
+where $\ZZ \sim \N(\bz,\Id_k)$ for $k \le q$, $\LLa$ is a (deterministic) loading matrix, and $\Eps \sim \N(\bz, \PPs)$, where $\PPs = \diag(\ssi^2) = \diag(\sigma_1^2, \ldots, \sigma_q^2)$.  The distribution of $\XX$ is thus multivariate normal,
+$$
+\XX \sim \N(\bz, \LLa\LLa' + \PPs).
+$$
+
+# Efficient Density Evaluation
+
+The log-density of the Gaussian factor model \@ref(eq:gfm) is
+$$
+\log p(\XX \mid \LLa, \ssi) = \tfrac 1 2 \left\{\XX' \SSi^{-1} \XX + \log |\SSi| \right\}, \qquad \SSi = \LLa\LLa' + \PPs.
+$$
+If calculated directly, the computational cost is $\bO(q^3)$ as incurred by the matrix inversion.  However, the [Wodbury formula](https://en.wikipedia.org/wiki/Woodbury_matrix_identity) allows the inverse to be computed as
+$$
+\begin{aligned}
+(\PPs + \LLa\LLa')^{-1} = \PPs^{-1} - \PPs^{-1}\LLa\OOm^{-1}\LLa'\PPs^{-1}, \qquad \OOm = \Id_k + \LLa'\PPs^{-1}\LLa.
+\end{aligned}
+$$
+The cost of the inversion is thus $\bO(k^4q)$, which can be much smaller than $\bO(q^3)$ when $k \ll q$.  Similarly for the log-determinant, by the [matrix determinant lemma](https://en.wikipedia.org/wiki/Matrix_determinant_lemma) we have
+$$
+\log |\PPs + \LLa\LLa'| = \log |\PPs| + \log|\OOm|.
+$$
+
+<!-- # Example with a Figure -->
+
+
+<!-- Referring to `test` (Figure \@ref(fig:test)). -->
+
+<!-- ```{r test, fig.cap = "Test figure."} -->
+<!-- plot(density(rnorm(1e4))) -->
+<!-- ``` -->
+
+<!-- Referring to `ktot` (Figure \@ref(fig:ktot)). -->
+
+
+<!-- ```{r ktot, fig.cap = paste0('R code: $2 + 2 =', 2+2, '$.')} -->
+<!-- plot(cumsum(rnorm(100))) -->
+<!-- ``` -->
+
+

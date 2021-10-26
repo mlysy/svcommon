@@ -17,4 +17,4 @@ devtools::install_github("mlysy/svcommon")
 
 ### Usage
 
-Please see package [vignette](http://htmlpreview.github.io/?https://github.com/mlysy/svcommon/master/doc/svcommon.html).
+Please see package example code in `vignette("svcommon")`.  

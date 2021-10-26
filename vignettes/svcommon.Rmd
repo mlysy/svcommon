@@ -4,26 +4,26 @@ author: |
   | Martin Lysy
   | University of Waterloo
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
-#  rmarkdown::html_vignette:
-#    includes:
-#      in_header: preamble.html
-#pkgdown:
-#  as_is: true
+output: bookdown::html_vignette2
+pkgdown:
+  as_is: true
 params:
   load_calcs: TRUE
+bibliography: references.bib
+csl: taylor-and-francis-harvard-x.csl
+link-citations: true
 vignette: >
   %\VignetteIndexEntry{Fast Inference for Common-Factor Stochastic Volatility Models}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
 
-<!-- equation numbering -->
-<script type="text/x-mathjax-config">
-MathJax.Hub.Config({
-  TeX: { equationNumbers: { autoNumber: "AMS" } }
-});
-</script>
+<!-- <\!-- equation numbering -\-> -->
+<!-- <script type="text/x-mathjax-config"> -->
+<!-- MathJax.Hub.Config({ -->
+<!--   TeX: { equationNumbers: { autoNumber: "AMS" } } -->
+<!-- }); -->
+<!-- </script> -->
 
 <!-- latex macros -->
 <script type="text/x-mathjax-config">
@@ -42,6 +42,7 @@ MathJax.Hub.Config({
 	      ilogit: ["\\operatorname{ilogit}"],
 	      N: ["\\mathcal{N}"],
 	      elL: ["\\mathcal{L}"],
+		  elap: ["\\ell_{\\text{Lap}}"],
 	      ud: ["\\mathop{}\\!\\mathrm{d}"],
 	      der: ["\\frac{\\ud^{#1}}{\\ud{#2}^{#1}}", 2, ""],
 	      del: ["\\frac{\\partial^{#1}}{\\partial{#2}^{#1}}", 2, ""],
@@ -87,31 +88,35 @@ knitr::opts_chunk$set(
 
 # The Common-Factor Multivariate Stochastic Volatility Model
 
-Let $X_{it}$ denote the log price of asset $i$ at time $t$ and $V_{it}$ denote the corresponding volatility on the standard deviation scale.  The common-factor multivariate stochastic volatility (mSV) model proposed by Fang et al (2020) is marginally written as
-$$
+Let $X_{it}$ denote the log price of asset $i = 1,\ldots N_a$ at time $t$ and $V_{it}$ denote the corresponding volatility on the standard deviation scale.  The common-factor multivariate stochastic volatility (mSV) model proposed by @fang.etal20 is marginally written as
+\begin{equation}
 \begin{aligned}
 \ud \log V_{it} & = -\gamma_i (\log V_{it} - \mu_i) \ud t + \sigma_i \ud B_{it}^V \\
 \ud X_{it} & = (\alpha_i - \tfrac 1 2 V_{it}^2) \ud t + V_{it} \left(\rho_i \ud B_{it}^V + \sqrt{1 - \rho_i^2} \ud B_{it}^Z\right).
 \end{aligned}
-$$
+(\#eq:svuni)
+\end{equation}
 The correlation between assets and volatilities comes from factor models for both the assets and the volatilities, namely
-$$
+\begin{equation}
 \begin{aligned}
 \ud B_{it}^V & = \tau_i \ud B_{\star t}^V + \sqrt{1 - \tau_i^2} \ud B_{it}^\epsilon \\
 \ud B_{it}^Z & = \omega_i \ud B_{\star t}^Z + \sqrt{1 - \omega_i^2} \ud B_{it}^\eta.
 \end{aligned}
-$$
-In Fang et al (2020) it is suggested to estimate the volatility common innovation factor $B_{\star t}^{V}$ via an observable proxy, for example the VIX.  That is, if $V_{\star t}$ is an observable proxy for the common volatility factor, then we use it to estimate $B_{\star t}^V$ via
-$$
+(\#eq:cor)
+\end{equation}
+In @fang.etal20 it is suggested to estimate the volatility common innovation factor $B_{\star t}^{V}$ via an observable proxy, for example the VIX.  That is, if $V_{\star t}$ is an observable proxy for the common volatility factor, then we use it to estimate $B_{\star t}^V$ via
+\begin{equation}
 \ud \log V_{\star t} = -\gamma_{\star} (\log V_{\star t} - \mu_{\star}) \ud t + \sigma_{\star} \ud B_{\star t}^V.
-$$
+(\#eq:volproxy)
+\end{equation}
 Here we propose to do something similar for the asset common innovation factor $B_{\star t}^Z$.  That is, let $(X_{0t}, V_{0t})$ be a univariate stochastic volatility model for an observable proxy for the common asset factor (for example, SPX).  Then we give it a similar marginal model to the above:
-$$
+\begin{equation}
 \begin{aligned}
 \ud \log V_{0t} & = -\gamma_0 (\log V_{0t} - \mu_0) \ud t + \sigma_0 \ud B_{0t}^V \\
 \ud X_{0t} & = (\alpha_0 - \tfrac 1 2 V_{0t}^2) \ud t + V_{0t} \left(\rho_0 \ud B_{0 t}^V + \sqrt{1 - \rho_0^2} \ud B_{0t}^Z \right),
 \end{aligned}
-$$
+(\#eq:assetproxy)
+\end{equation}
 where $\ud B_{0t}^V = \tau_0 \ud B_{\star t}^V + \sqrt{1 - \tau_0^2} \ud B_{0t}^\epsilon$.  The asset common factor is estimated from the proxy by equating $B_{\star t}^Z = B_{0t}^Z$.
 
 # Parameter Estimation
@@ -127,14 +132,23 @@ dim(snp500) # automatically loaded with svcommon
 snp500[1:6, ncol(snp500)-8 + 1:8]
 ```
 
-**svcommon** uses the Laplace approximation with automatic differentiation provided by the **TMB** package to efficiently marginalize over the latent volatilities $\VV$ in order to calculate $\elL(\tth \mid \XX, \VV_0) \approx \log p(\XX, \VV_0 \mid \tth)$ and its gradient with respect to the model parameters $\tth$.  It then uses a block coordinate descent algorithm with good initial values to very quickly converge to the approximate MLE $\hat \tth = \operatorname{arg\,max}_{\tth} \elL(\XX, \VV_0 \mid \tth)$, about two orders of magnitude faster than exact inference methods.  The procedure is illustrated with a dataset consisting of `r nrow(snp500)` daily closing prices of `r ncol(snp500)-2` constituents of the S&P500, the index value itself (GSPC), and its volatility index (VIX).
+The common-factor stochastic volatility model defined by \@ref(eq:svuni) through \@ref(eq:assetproxy) has likelihood function
+$$
+\elL(\tth \mid \XX, \VV_0) \propto \int p(\XX, \VV, \VV_0 \mid \tth) \ud \VV.
+$$
+While the integral over the latent volatilities $\VV$ is typically intractable, **svcommon** uses Laplace's method to approximate the integral by solving a tractable optimization problem.  This is implemented using the R package **TMB**, which efficiently computes the approximate marginal loglikelihood
+\begin{equation}
+\elap(\tth \mid \XX, \VV_0) \approx \log \elL(\tth \mid \XX, \VV_0)
+(\#eq:elap)
+\end{equation}
+and its gradient $\frac{\partial}{\partial \tth} \elap(\tth \mid \XX, \VV_0)$ using automatic differentiation.  **svcommon** uses a block coordinate descent algorithm with good initial values to very quickly converge to the approximate MLE $\hat \tth = \operatorname{arg\,max}_{\tth} \elap(\XX, \VV_0 \mid \tth)$, about two orders of magnitude faster than exact inference methods.  The procedure is illustrated with a dataset consisting of `r nrow(snp500)` daily closing prices of `r ncol(snp500)-2` constituents of the S&P500, the index value itself (GSPC), and its volatility index (VIX).
 
 ```{r disp_data, ref.label = "load_data"}
 ```
 
 ## Initialization
 
-Initial guesses for the parameters of the common-factor stochastic volatility (SVC) model are obtained from marginal fits of the exponential Ornstein-Uhlenbeck (EOU) model to each asset and to GSPC.  To perform the optimization, the R built-in **stats* package provides the optimiziers `stats::optim()`, `stats::nlm()`, and `stats::nlminb()`.  Various experiments with SVC modeling indicate that `statss:nlminb()` is by far the fastest, with little difference in numerical accuracy. Indeed, the marginal fits are extremely fast and stable, even with the (log or logit) parameters arbitrarily initialized to zero.
+Initial guesses for the parameters of the common-factor stochastic volatility (SVC) model are obtained from marginal fits of the exponential Ornstein-Uhlenbeck (EOU) model to each asset and to GSPC.  To perform the optimization, the R built-in **stats** package provides the optimiziers `stats::optim()`, `stats::nlm()`, and `stats::nlminb()`.  Various experiments with SVC modeling indicate that `statss:nlminb()` is by far the fastest, with little difference in numerical accuracy. Indeed, the marginal fits are extremely fast and stable, even with the (log or logit) parameters arbitrarily initialized to zero.
 
 ```{r init_setup, include = FALSE}
 # problem dimensions
@@ -290,9 +304,9 @@ All parameter estimates have reasonable precision, except notably $\alpha_i$, th
 
 2.  Let $p(X_{0,T+d}, \ldots, X_{q,T+d}, \log V_{0,T+d}, \ldots, \log V_{q,T+d} \mid \XX, \VV_0)$ denote the Bayesian forecast distribution for assets and volatilities on day $t = T+d$.  We can simulate from this distribution by combining draws from the multivariate normal approximation to $p(\tth, \log V_{0T}, \ldots, \log V_{qT} \mid \XX, \VV_0)$ with forward simulation from the SVC model with `svc_sim()`.
 
-An illustration of this procedure is provided below.
+An illustration of this procedure produces the posterior forecast distribution in Figure \@ref(fig:forecast).
 
-```{r forecast, fig.width = 7, fig.height = 4}
+```{r forecast, fig.width = 7, fig.height = 3, fig.out = "100%", fig.cap = "Posterior forecast distribution $p(\\VV_{T+d} \\mid \\XX, \\VV_0)$ and $p(\\XX_{T+d} \\mid \\XX, \\VV_0)$."}
 nfwd <- 10 # number of days to forecast
 nsim <- 1e4 # number of simulated forecasts
 
@@ -324,14 +338,17 @@ X_fwd <- data.frame(type = "X", X_fwd)
 V_fwd <- exp(t(fwd_post$log_Vt[nfwd,,]))
 colnames(V_fwd) <- colnames(log_Vt)
 V_fwd <- data.frame(type = "V", V_fwd)
-XV_fwd <- rbind(X_fwd, V_fwd)
+XV_fwd <- rbind(X_fwd, V_fwd) %>%
+  as_tibble()
 # plot
 XV_fwd %>%
-  as_tibble() %>%
-  pivot_longer(GSPC:USB, names_to = "asset", values_to = "value") %>%
-  mutate(asset = factor(asset, levels = colnames(Xt))) %>%
-  ggplot(aes(x = value)) +
-  geom_density() +
-  facet_wrap(~ type:asset, scales = "free", nrow = 2) +
+  pivot_longer(GSPC:USB, names_to = "Asset", values_to = "Value") %>%
+  mutate(Asset = factor(Asset, levels = colnames(Xt))) %>%
+  ggplot(aes(x = Value, group = Asset)) +
+  geom_density(aes(color = Asset)) +
+  facet_wrap(~ type, scales = "free", ncol = 2) +
   xlab("") + ylab("Posterior Forecast Distribution")
 ```
+
+# References {-}
+
