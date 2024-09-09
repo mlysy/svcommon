@@ -45,9 +45,11 @@ The result of a call to \code{\link[TMB:MakeADFun]{TMB::MakeADFun()}}.
 Construct a \code{\link[TMB:MakeADFun]{TMB::MakeADFun()}} object for the exponential Ornstein-Uhlenbeck stochastic volatility model.
 }
 \details{
-The exponential Ornstein-Uhlenbeck (eOU) stochastic volatility model for a single asset is given by the stochastic differential equation (SDE)\preformatted{dlog_Vt = - gamma (log_Vt - mu) dt + sigma dB_Vt
+The exponential Ornstein-Uhlenbeck (eOU) stochastic volatility model for a single asset is given by the stochastic differential equation (SDE)
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{dlog_Vt = - gamma (log_Vt - mu) dt + sigma dB_Vt
 dXt = (alpha - .5 Vt^2) dt + Vt (rho dB_Vt + sqrt(1-rho^2) dB_Zt),
-}
+}\if{html}{\out{</div>}}
 
 where \code{B_Vt} and \code{B_Zt} are independent Brownian motions.
 
@@ -55,9 +57,11 @@ where \code{B_Vt} and \code{B_Zt} are independent Brownian motions.
 
 The optional inputs \code{log_Vt}, \code{alpha}, ..., \code{logit_rho} can be set to initialize optimization routines.  The default values are \code{alpha = 0}, ..., \code{logit_rho = 0}, and \code{log_Vt} as the log of windowed standard deviation estimates returned by \code{\link[=sv_init]{sv_init()}}.
 
-\code{eou_MakeADFun} is a wrapper to \code{\link[TMB:MakeADFun]{TMB::MakeADFun()}}.  This function may be called on the underlying C++ template provided by \pkg{svcommon} via\preformatted{TMB::MakeADFun(data = list(model = "sv_eou", ...),
+\code{eou_MakeADFun} is a wrapper to \code{\link[TMB:MakeADFun]{TMB::MakeADFun()}}.  This function may be called on the underlying C++ template provided by \pkg{svcommon} via
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{TMB::MakeADFun(data = list(model = "sv_eou", ...),
                parameters = list(...),
                DLL = "svcommon_TMBExports",
                ...)
-}
+}\if{html}{\out{</div>}}
 }

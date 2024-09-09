@@ -13,7 +13,7 @@ Type objective_function<Type>::operator() () {
   } else if(model == "sv_eou") {
     return sv_eou(this);
   } else {
-    error("Unknown model.");
+    Rf_error("Unknown model.");
   }
   return 0;
 }

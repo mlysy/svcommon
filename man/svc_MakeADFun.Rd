@@ -63,9 +63,11 @@ The common-factor multivariate stochastic volatility (SVC) model for multiple as
 
 The optional latent variable and parameter inputs \code{log_Vt}, \code{alpha}, ..., \code{logit_rho} can be set to initialize optimization routines.  The default values are for each parameter vector to consist of the zero vector of the appropriate length, and the columns of \code{log_Vt} to be the log of windowed standard deviation estimates for the corresponding asset as calculated by \code{\link[=sv_init]{sv_init()}}.
 
-\code{svc_MakeADFun} is a wrapper to \code{\link[TMB:MakeADFun]{TMB::MakeADFun()}}.  This function may be called on the underlying C++ template provided by \pkg{svcommon} via\preformatted{TMB::MakeADFun(data = list(model = "sv_common", ...),
+\code{svc_MakeADFun} is a wrapper to \code{\link[TMB:MakeADFun]{TMB::MakeADFun()}}.  This function may be called on the underlying C++ template provided by \pkg{svcommon} via
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{TMB::MakeADFun(data = list(model = "sv_common", ...),
                parameters = list(...),
                DLL = "svcommon_TMBExports",
                ...)
-}
+}\if{html}{\out{</div>}}
 }

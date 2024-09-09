@@ -18,9 +18,13 @@ A named vector containing the maximum likelihood estimate of the OU parameters.
 Calculate the MLE using least-squares on the one-step Euler approximation.
 }
 \details{
-The Ornstein-Uhlenbeck process is described by the stochastic differential equation\preformatted{dXt = - gamma (Xt - mu) dt + sigma dBt.
-}
+The Ornstein-Uhlenbeck process is described by the stochastic differential equation
 
-Here, the MLE is computed analytically from the Euler approximation\preformatted{X_\{t+1\} | X_t ~ N(X_t - gamma (X_t - mu) dt, sigma^2 dt).
-}
+\if{html}{\out{<div class="sourceCode">}}\preformatted{dXt = - gamma (Xt - mu) dt + sigma dBt.
+}\if{html}{\out{</div>}}
+
+Here, the MLE is computed analytically from the Euler approximation
+
+\if{html}{\out{<div class="sourceCode">}}\preformatted{X_\{t+1\} | X_t ~ N(X_t - gamma (X_t - mu) dt, sigma^2 dt).
+}\if{html}{\out{</div>}}
 }
