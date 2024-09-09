@@ -5,3 +5,5 @@
 ^pkgdown$
 ^vignettes/_site\.yml$
 ^\.github$
+^_pkgdown\.yml$
+^docs$

@@ -1,6 +1,6 @@
 development:
   mode: unreleased
 template:
-  path: "pkgdown"
+  bootstrap: 3
   params:
     bootswatch: readable
