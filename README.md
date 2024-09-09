@@ -2,6 +2,10 @@
 
 *Martin Lysy*
 
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/mlysy/svcommon/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/mlysy/svcommon/actions/workflows/R-CMD-check.yaml)
+<!-- badges: end -->
+
 ---
 
 ### Description
@@ -12,7 +16,7 @@ Provides various tools for estimating the parameters of the common-factor multiv
 
 Install the R package [**devtools**](https://CRAN.R-project.org/package=devtools) and run
 ```r
-devtools::install_github("mlysy/svcommon")
+devtools::install_github("mlysy/svcommon", INSTALL_opts = "--install-tests")
 ```
 
 ### Usage

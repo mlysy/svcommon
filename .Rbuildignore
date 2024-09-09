@@ -4,3 +4,4 @@
 ^man-roxygen$
 ^pkgdown$
 ^vignettes/_site\.yml$
+^\.github$

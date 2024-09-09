@@ -1,6 +1,7 @@
 Package: svcommon
 Title: Fast Inference for Common-Factor Stochastic Volatility Models
 Version: 0.1.0
+Date: 2020-10-26
 Authors@R: 
     person(given = "Martin",
            family = "Lysy",
@@ -13,7 +14,7 @@ LazyData: true
 URL: https://github.com/mlysy/svcommon
 BugReports: https://github.com/mlysy/svcommon/issues
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.1.1
+RoxygenNote: 7.1.2
 Depends: 
     R (>= 3.5.0),
     TMB (>= 1.7.16)
