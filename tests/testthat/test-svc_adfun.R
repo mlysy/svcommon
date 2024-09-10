@@ -1,7 +1,7 @@
 
 context("svc_adfun")
 
-source("svcommon-testfunctions.R")
+## source("svcommon-testfunctions.R")
 
 test_that("Variance matrix factorization is correct.", {
   ntest <- 10

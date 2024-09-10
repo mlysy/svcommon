@@ -1,7 +1,7 @@
 
 context("eou_adfun")
 
-source("svcommon-testfunctions.R")
+## source("svcommon-testfunctions.R")
 
 test_that("R and TMB likelihoods agree.", {
   ntest <- 10

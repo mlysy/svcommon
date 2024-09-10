@@ -1,5 +1,7 @@
 #--- a common factor msv model -------------------------------------------------
 
+set.seed(2024)
+
 # correlation structure is:
 #
 # B_Vi = tau_i B_VP + sqrt(1-tau_i^2) B_epsi

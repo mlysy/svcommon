@@ -1,6 +1,6 @@
 context("svc_sim")
 
-source("svcommon-testfunctions.R")
+## source("svcommon-testfunctions.R")
 
 test_that("Innovations from svc_sim and svc_dB are the same.", {
   ntest <- 20
