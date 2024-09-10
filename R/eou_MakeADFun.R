@@ -31,6 +31,7 @@
 #'                DLL = "svcommon_TMBExports",
 #'                ...)
 #' ```
+#' @importFrom TMB MakeADFun
 #' @export
 eou_MakeADFun <- function(Xt, dt,
                           log_Vt, alpha, log_gamma, mu, log_sigma, logit_rho,
@@ -58,9 +59,13 @@ eou_MakeADFun <- function(Xt, dt,
   # construct ADFun object
   par_list <- list(log_Vt = log_Vt, alpha = alpha, log_gamma = log_gamma,
                    mu = mu, log_sigma = log_sigma, logit_rho = logit_rho)
-  TMB::MakeADFun(data = list(model = "sv_eou", Xt = Xt, dt = dt),
-                 parameters = par_list,
-                 random = "log_Vt",
-                 DLL = "svcommon_TMBExports", silent = TRUE, ...)
+  MakeADFun(
+    data = list(model = "sv_eou", Xt = Xt, dt = dt),
+    parameters = par_list,
+    random = "log_Vt",
+    DLL = "svcommon_TMBExports",
+    silent = TRUE,
+    ...
+  )
 }
 

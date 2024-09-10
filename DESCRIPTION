@@ -17,7 +17,6 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1
 Depends: 
     R (>= 3.5.0),
-    TMB
 LinkingTo: 
     TMB,
     RcppEigen
@@ -31,5 +30,6 @@ Suggests:
     dplyr,
     ggplot2
 Imports:
-    stats
+    stats,
+    TMB (>= 1.7.20)
 VignetteBuilder: knitr

@@ -9,7 +9,7 @@
 # Flags specifically for the TMB compilation can also be set
 # through the 'TMB_FLAGS' argument below, e.g.,
 
-TMB_FLAGS = -std=c++11
+# TMB_FLAGS = -std=c++11
 
 # --- TMB-specific compiling directives below ---
 
