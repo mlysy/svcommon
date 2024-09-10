@@ -6,13 +6,13 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Efficient Computations for a Gaussian Factor Model • svcommon</title>
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/readable/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/readable/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
 <script src="../pkgdown.js"></script><meta property="og:title" content="Efficient Computations for a Gaussian Factor Model">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
+<!-- mathjax --><!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script> --><!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script> --><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
 <![endif]-->
@@ -90,81 +90,76 @@ University of Waterloo</div></h4>
 
     
     
-<!-- <\!-- equation numbering -\-> -->
-<!-- <script type="text/x-mathjax-config"> -->
-<!-- MathJax.Hub.Config({ -->
-<!--   TeX: { equationNumbers: { autoNumber: "AMS" } } -->
-<!-- }); -->
-<!-- </script> -->
 <!-- latex macros -->
-<script type="text/x-mathjax-config">
-  MathJax.Hub.Config({
-      TeX: {
-      Macros: {
-          bm: ["\\boldsymbol{#1}",1],
-          tx: ["\\textrm{#1}",1],
-          rv: ["#2_{#1},\\ldots,#2_{#3}",3,"1"],
-          iid: ["\\overset{\\;\\tx{iid}\\;}{\\sim}"],
-          ind: ["\\overset{\\:\\tx{ind}\\:}{\\sim}"],
-          var: ["\\operatorname{var}"],
-          cov: ["\\operatorname{cov}"],
-          cor: ["\\operatorname{cor}"],
-          diag: ["\\operatorname{diag}"],
-          logit: ["\\operatorname{logit}"],
-          ilogit: ["\\operatorname{ilogit}"],
-          N: ["\\mathcal{N}"],
-          elL: ["\\mathcal{L}"],
-          ud: ["\\mathop{}\\!\\mathrm{d}"],
-          der: ["\\frac{\\ud^{#1}}{\\ud{#2}^{#1}}", 2, ""],
-          del: ["\\frac{\\partial^{#1}}{\\partial{#2}^{#1}}", 2, ""],
-          fder: ["\\frac{\\ud^{#1}#3}{\\ud{#2}^{#1}}", 3, ""],
-          fdel: ["\\frac{\\partial^{#1}#3}{\\partial{#2}^{#1}}", 3, ""],
-          hess: ["\\frac{\\partial^2}{\\partial{#1}\\partial{#1}'}", 1],
-          fhess: ["\\frac{\\partial^2#2}{\\partial{#1}\\partial{#1}'}", 2],
-          bO: ["{\\mathcal{O}}"],
-          bz: ["{\\bm{0}}"],
-          Id: ["{\\bm{I}}"],
-          ww: ["{\\bm{w}}"],
-          xx: ["{\\bm{x}}"],
-          yy: ["{\\bm{y}}"],
-          zz: ["{\\bm{z}}"],
-          VV: ["{\\bm{V}}"],
-          XX: ["{\\bm{X}}"],
-          YY: ["{\\bm{Y}}"],
-          ZZ: ["{\\bm{Z}}"],
-          aal: ["{\\bm{\\alpha}}"],
-          bbe: ["{\\bm{\\beta}}"],
-          gga: ["{\\bm{\\gamma}}"],
-          eet: ["{\\bm{\\eta}}"],
-          lla: ["{\\bm{\\lambda}}"],
-          mmu: ["{\\bm{\\mu}}"],
-          pph: ["{\\bm{\\phi}}"],
-          pps: ["{\\bm{\\psi}}"],
-          rrh: ["{\\bm{\\rho}}"],
-          ssi: ["{\\bm{\\sigma}}"],
-          tta: ["{\\bm{\\tau}}"],
-          tth: ["{\\bm{\\theta}}"],
-          GGa: ["{\\bm{\\Gamma}}"],
-          SSi: ["{\\bm{\\Sigma}}"],
-          TTh: ["{\\bm{\\Theta}}"],
-          PPs: ["{\\bm{\\Psi}}"],
-          LLa: ["{\\bm{\\Lambda}}"],
-          OOm: ["{\\bm{\\Omega}}"],
-          Eps: ["{\\bm{\\varepsilon}}"]
-      }
-      }
-  });
-</script><div class="section level2">
+<!-- <script type="text/x-mathjax-config"> -->
+<!--   MathJax.Hub.Config({ -->
+<!--       TeX: { -->
+<!--      Macros: { -->
+<!--          bm: ["\\boldsymbol{#1}",1], -->
+<!--          tx: ["\\textrm{#1}",1], -->
+<!--          rv: ["#2_{#1},\\ldots,#2_{#3}",3,"1"], -->
+<!--          iid: ["\\overset{\\;\\tx{iid}\\;}{\\sim}"], -->
+<!--          ind: ["\\overset{\\:\\tx{ind}\\:}{\\sim}"], -->
+<!--          var: ["\\operatorname{var}"], -->
+<!--          cov: ["\\operatorname{cov}"], -->
+<!--          cor: ["\\operatorname{cor}"], -->
+<!--          diag: ["\\operatorname{diag}"], -->
+<!--          logit: ["\\operatorname{logit}"], -->
+<!--          ilogit: ["\\operatorname{ilogit}"], -->
+<!--          N: ["\\mathcal{N}"], -->
+<!--          elL: ["\\mathcal{L}"], -->
+<!--          ud: ["\\mathop{}\\!\\mathrm{d}"], -->
+<!--          der: ["\\frac{\\ud^{#1}}{\\ud{#2}^{#1}}", 2, ""], -->
+<!--          del: ["\\frac{\\partial^{#1}}{\\partial{#2}^{#1}}", 2, ""], -->
+<!--          fder: ["\\frac{\\ud^{#1}#3}{\\ud{#2}^{#1}}", 3, ""], -->
+<!--          fdel: ["\\frac{\\partial^{#1}#3}{\\partial{#2}^{#1}}", 3, ""], -->
+<!--          hess: ["\\frac{\\partial^2}{\\partial{#1}\\partial{#1}'}", 1], -->
+<!--          fhess: ["\\frac{\\partial^2#2}{\\partial{#1}\\partial{#1}'}", 2], -->
+<!--          bO: ["{\\mathcal{O}}"], -->
+<!--          bz: ["{\\bm{0}}"], -->
+<!--          Id: ["{\\bm{I}}"], -->
+<!--          ww: ["{\\bm{w}}"], -->
+<!--          xx: ["{\\bm{x}}"], -->
+<!--          yy: ["{\\bm{y}}"], -->
+<!--          zz: ["{\\bm{z}}"], -->
+<!--          VV: ["{\\bm{V}}"], -->
+<!--          XX: ["{\\bm{X}}"], -->
+<!--          YY: ["{\\bm{Y}}"], -->
+<!--          ZZ: ["{\\bm{Z}}"], -->
+<!--          aal: ["{\\bm{\\alpha}}"], -->
+<!--          bbe: ["{\\bm{\\beta}}"], -->
+<!--          gga: ["{\\bm{\\gamma}}"], -->
+<!--          eet: ["{\\bm{\\eta}}"], -->
+<!--          lla: ["{\\bm{\\lambda}}"], -->
+<!--          mmu: ["{\\bm{\\mu}}"], -->
+<!--          pph: ["{\\bm{\\phi}}"], -->
+<!--          pps: ["{\\bm{\\psi}}"], -->
+<!--          rrh: ["{\\bm{\\rho}}"], -->
+<!--          ssi: ["{\\bm{\\sigma}}"], -->
+<!--          tta: ["{\\bm{\\tau}}"], -->
+<!--          tth: ["{\\bm{\\theta}}"], -->
+<!--          GGa: ["{\\bm{\\Gamma}}"], -->
+<!--          SSi: ["{\\bm{\\Sigma}}"], -->
+<!--          TTh: ["{\\bm{\\Theta}}"], -->
+<!--          PPs: ["{\\bm{\\Psi}}"], -->
+<!--          LLa: ["{\\bm{\\Lambda}}"], -->
+<!--          OOm: ["{\\bm{\\Omega}}"], -->
+<!--          Eps: ["{\\bm{\\varepsilon}}"] -->
+<!--      } -->
+<!--       } -->
+<!--   }); -->
+<!-- </script> -->
+<div class="section level2">
 <h2 id="setup">Setup<a class="anchor" aria-label="anchor" href="#setup"></a>
 </h2>
-<p>The Gaussian factor model for <span class="math inline">\(\XX = (X_1, \ldots, X_q)\)</span> is given by
+<p>The Gaussian factor model for <span class="math inline">\({\boldsymbol{X}}= (X_1, \ldots, X_q)\)</span> is given by
 <span class="math display" id="eq:gfm">\[\begin{equation}
-\XX_{q\times 1} = \LLa_{q \times k} \ZZ_{k \times 1} + \Eps_{q\times 1},
+{\boldsymbol{X}}_{q\times 1} = {\boldsymbol{\Lambda}}_{q \times k} {\boldsymbol{Z}}_{k \times 1} + {\boldsymbol{\varepsilon}}_{q\times 1},
 \tag{1}
 \end{equation}\]</span>
-where <span class="math inline">\(\ZZ \sim \N(\bz,\Id_k)\)</span> for <span class="math inline">\(k \le q\)</span>, <span class="math inline">\(\LLa\)</span> is a (deterministic) loading matrix, and <span class="math inline">\(\Eps \sim \N(\bz, \PPs)\)</span>, where <span class="math inline">\(\PPs = \diag(\ssi^2) = \diag(\sigma_1^2, \ldots, \sigma_q^2)\)</span>. The distribution of <span class="math inline">\(\XX\)</span> is thus multivariate normal,
+where <span class="math inline">\({\boldsymbol{Z}}\sim \mathcal{N}({\boldsymbol{0}},{\boldsymbol{I}}_k)\)</span> for <span class="math inline">\(k \le q\)</span>, <span class="math inline">\({\boldsymbol{\Lambda}}\)</span> is a (deterministic) loading matrix, and <span class="math inline">\({\boldsymbol{\varepsilon}}\sim \mathcal{N}({\boldsymbol{0}}, {\boldsymbol{\Psi}})\)</span>, where <span class="math inline">\({\boldsymbol{\Psi}}= \operatorname{diag}({\boldsymbol{\sigma}}^2) = \operatorname{diag}(\sigma_1^2, \ldots, \sigma_q^2)\)</span>. The distribution of <span class="math inline">\({\boldsymbol{X}}\)</span> is thus multivariate normal,
 <span class="math display">\[
-\XX \sim \N(\bz, \LLa\LLa' + \PPs).
+{\boldsymbol{X}}\sim \mathcal{N}({\boldsymbol{0}}, {\boldsymbol{\Lambda}}{\boldsymbol{\Lambda}}' + {\boldsymbol{\Psi}}).
 \]</span></p>
 </div>
 <div class="section level2">
@@ -172,27 +167,18 @@ where <span class="math inline">\(\ZZ \sim \N(\bz,\Id_k)\)</span> for <span clas
 </h2>
 <p>The log-density of the Gaussian factor model <a href="#eq:gfm">(1)</a> is
 <span class="math display">\[
-\log p(\XX \mid \LLa, \ssi) = \tfrac 1 2 \left\{\XX' \SSi^{-1} \XX + \log |\SSi| \right\}, \qquad \SSi = \LLa\LLa' + \PPs.
+\log p({\boldsymbol{X}}\mid {\boldsymbol{\Lambda}}, {\boldsymbol{\sigma}}) = \tfrac 1 2 \left\{{\boldsymbol{X}}' {\boldsymbol{\Sigma}}^{-1} {\boldsymbol{X}}+ \log |{\boldsymbol{\Sigma}}| \right\}, \qquad {\boldsymbol{\Sigma}}= {\boldsymbol{\Lambda}}{\boldsymbol{\Lambda}}' + {\boldsymbol{\Psi}}.
 \]</span>
-If calculated directly, the computational cost is <span class="math inline">\(\bO(q^3)\)</span> as incurred by the matrix inversion. However, the <a href="https://en.wikipedia.org/wiki/Woodbury_matrix_identity" class="external-link">Wodbury formula</a> allows the inverse to be computed as
+If calculated directly, the computational cost is <span class="math inline">\(\operatorname{\mathcal{O}}(q^3)\)</span> as incurred by the matrix inversion. However, the <a href="https://en.wikipedia.org/wiki/Woodbury_matrix_identity" class="external-link">Wodbury formula</a> allows the inverse to be computed as
 <span class="math display">\[
 \begin{aligned}
-(\PPs + \LLa\LLa')^{-1} = \PPs^{-1} - \PPs^{-1}\LLa\OOm^{-1}\LLa'\PPs^{-1}, \qquad \OOm = \Id_k + \LLa'\PPs^{-1}\LLa.
+({\boldsymbol{\Psi}}+ {\boldsymbol{\Lambda}}{\boldsymbol{\Lambda}}')^{-1} = {\boldsymbol{\Psi}}^{-1} - {\boldsymbol{\Psi}}^{-1}{\boldsymbol{\Lambda}}{\boldsymbol{\Omega}}^{-1}{\boldsymbol{\Lambda}}'{\boldsymbol{\Psi}}^{-1}, \qquad {\boldsymbol{\Omega}}= {\boldsymbol{I}}_k + {\boldsymbol{\Lambda}}'{\boldsymbol{\Psi}}^{-1}{\boldsymbol{\Lambda}}.
 \end{aligned}
 \]</span>
-The cost of the inversion is thus <span class="math inline">\(\bO(k^4q)\)</span>, which can be much smaller than <span class="math inline">\(\bO(q^3)\)</span> when <span class="math inline">\(k \ll q\)</span>. Similarly for the log-determinant, by the <a href="https://en.wikipedia.org/wiki/Matrix_determinant_lemma" class="external-link">matrix determinant lemma</a> we have
+The cost of the inversion is thus <span class="math inline">\(\operatorname{\mathcal{O}}(k^4q)\)</span>, which can be much smaller than <span class="math inline">\(\operatorname{\mathcal{O}}(q^3)\)</span> when <span class="math inline">\(k \ll q\)</span>. Similarly for the log-determinant, by the <a href="https://en.wikipedia.org/wiki/Matrix_determinant_lemma" class="external-link">matrix determinant lemma</a> we have
 <span class="math display">\[
-\log |\PPs + \LLa\LLa'| = \log |\PPs| + \log|\OOm|.
+\log |{\boldsymbol{\Psi}}+ {\boldsymbol{\Lambda}}{\boldsymbol{\Lambda}}'| = \log |{\boldsymbol{\Psi}}| + \log|{\boldsymbol{\Omega}}|.
 \]</span></p>
-<!-- # Example with a Figure -->
-<!-- Referring to `test` (Figure \@ref(fig:test)). -->
-<!-- ```{r test, fig.cap = "Test figure."} -->
-<!-- plot(density(rnorm(1e4))) -->
-<!-- ``` -->
-<!-- Referring to `ktot` (Figure \@ref(fig:ktot)). -->
-<!-- ```{r ktot, fig.cap = paste0('R code: $2 + 2 =', 2+2, '$.')} -->
-<!-- plot(cumsum(rnorm(100))) -->
-<!-- ``` -->
 </div>
   </div>
 
@@ -204,23 +190,48 @@ The cost of the inversion is thus <span class="math inline">\(\bO(k^4q)\)</span>
 
 
 
-      <footer><div class="copyright">
-  <p></p>
-<p>Developed by Martin Lysy.</p>
+      <footer><!-- load mathjax after it has been configured --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><div class="copyright">
+  <!-- <p>Copyright 2017-2019 Martin Lysy</p> -->
+  <script>
+    function get_date() {
+	// return "aaaa";
+	var x = new Date(Date.parse(document.lastModified));
+	var d = x.getDate();
+	var m = x.getMonth() + 1;
+	var y = x.getYear();
+	// different on IE and NS
+	if(y >= 2000)
+	{
+	    y -= 2000;
+	}
+	if(y >= 100)
+	{
+	    y -= 100;
+	}
+	y = y + 2000;
+	// x = new Date(x);
+	// return x.getMonth();
+	return "" + m + "/" + d + "/" + y;
+    }
+  </script><p>Last updated: <script> document.write(get_date()) </script></p>
+
+
+      
+   </div>
+
+
+
+
+
+
+  </footer>
 </div>
-
-<div class="pkgdown">
-  <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
-</div>
-
-      </footer>
-</div>
-
-
-
-
-
-
-  </body>
+</body>
 </html>

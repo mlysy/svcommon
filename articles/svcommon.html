@@ -6,13 +6,13 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Fast Inference for Common-Factor Stochastic Volatility Models • svcommon</title>
-<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/readable/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+<!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.1/jquery.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script><!-- Bootstrap --><link href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/readable/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="../bootstrap-toc.css">
 <script src="../bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/v4-shims.min.css" integrity="sha256-wZjR52fzng1pJHwx4aV2AO3yyTOXrcDW7jBpJtTwVxw=" crossorigin="anonymous">
 <!-- clipboard.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.6/clipboard.min.js" integrity="sha256-inc5kl9MA1hkeYUt+EC3BhlIgyp/2jDIyBLS6k3UxPI=" crossorigin="anonymous"></script><!-- headroom.js --><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/headroom.min.js" integrity="sha256-AsUX4SJE1+yuDu5+mAVzJbuYNPHj/WroHuZ8Ir/CkE0=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/headroom/0.11.0/jQuery.headroom.min.js" integrity="sha256-ZX/yNShbjqsohH1k95liqY9Gd8uOiE1S4vZc+9KQ1K4=" crossorigin="anonymous"></script><!-- pkgdown --><link href="../pkgdown.css" rel="stylesheet">
 <script src="../pkgdown.js"></script><meta property="og:title" content="Fast Inference for Common-Factor Stochastic Volatility Models">
-<!-- mathjax --><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script><!--[if lt IE 9]>
+<!-- mathjax --><!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js" integrity="sha256-nvJJv9wWKEm88qvoQl9ekL2J+k/RWIsaSScxxlsrv8k=" crossorigin="anonymous"></script> --><!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/config/TeX-AMS-MML_HTMLorMML.js" integrity="sha256-84DKXVJXs0/F8OTMzX4UR909+jtl4G7SPypPavF+GfA=" crossorigin="anonymous"></script> --><!--[if lt IE 9]>
 <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
 <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
 <![endif]-->
@@ -97,103 +97,104 @@ University of Waterloo</div></h4>
 <!-- }); -->
 <!-- </script> -->
 <!-- latex macros -->
-<script type="text/x-mathjax-config">
-  MathJax.Hub.Config({
-      TeX: {
-      Macros: {
-          bm: ["\\boldsymbol{#1}",1],
-          tx: ["\\textrm{#1}",1],
-          rv: ["#2_{#1},\\ldots,#2_{#3}",3,"1"],
-          iid: ["\\overset{\\;\\tx{iid}\\;}{\\sim}"],
-          ind: ["\\overset{\\:\\tx{ind}\\:}{\\sim}"],
-          var: ["\\operatorname{var}"],
-          cov: ["\\operatorname{cov}"],
-          cor: ["\\operatorname{cor}"],
-          logit: ["\\operatorname{logit}"],
-          ilogit: ["\\operatorname{ilogit}"],
-          N: ["\\mathcal{N}"],
-          elL: ["\\mathcal{L}"],
-          elap: ["\\ell_{\\text{Lap}}"],
-          ud: ["\\mathop{}\\!\\mathrm{d}"],
-          der: ["\\frac{\\ud^{#1}}{\\ud{#2}^{#1}}", 2, ""],
-          del: ["\\frac{\\partial^{#1}}{\\partial{#2}^{#1}}", 2, ""],
-          fder: ["\\frac{\\ud^{#1}#3}{\\ud{#2}^{#1}}", 3, ""],
-          fdel: ["\\frac{\\partial^{#1}#3}{\\partial{#2}^{#1}}", 3, ""],
-          hess: ["\\frac{\\partial^2}{\\partial{#1}\\partial{#1}'}", 1],
-          fhess: ["\\frac{\\partial^2#2}{\\partial{#1}\\partial{#1}'}", 2],
-          ww: ["{\\bm{w}}"],
-          xx: ["{\\bm{x}}"],
-          yy: ["{\\bm{y}}"],
-          zz: ["{\\bm{z}}"],
-          VV: ["{\\bm{V}}"],
-          XX: ["{\\bm{X}}"],
-          YY: ["{\\bm{Y}}"],
-          ZZ: ["{\\bm{Z}}"],
-          aal: ["{\\bm{\\alpha}}"],
-          bbe: ["{\\bm{\\beta}}"],
-          gga: ["{\\bm{\\gamma}}"],
-          eet: ["{\\bm{\\eta}}"],
-          lla: ["{\\bm{\\lambda}}"],
-          mmu: ["{\\bm{\\mu}}"],
-          pph: ["{\\bm{\\phi}}"],
-          pps: ["{\\bm{\\psi}}"],
-          rrh: ["{\\bm{\\rho}}"],
-          ssi: ["{\\bm{\\sigma}}"],
-          tta: ["{\\bm{\\tau}}"],
-          tth: ["{\\bm{\\theta}}"],
-          GGa: ["{\\bm{\\Gamma}}"],
-          SSi: ["{\\bm{\\Sigma}}"],
-          TTh: ["{\\bm{\\Theta}}"]
-      }
-      }
-  });
-</script><div class="section level2">
+<!-- <script type="text/x-mathjax-config"> -->
+<!--   MathJax.Hub.Config({ -->
+<!--       TeX: { -->
+<!--      Macros: { -->
+<!--          bm: ["\\boldsymbol{#1}",1], -->
+<!--          tx: ["\\textrm{#1}",1], -->
+<!--          rv: ["#2_{#1},\\ldots,#2_{#3}",3,"1"], -->
+<!--          iid: ["\\overset{\\;\\tx{iid}\\;}{\\sim}"], -->
+<!--          ind: ["\\overset{\\:\\tx{ind}\\:}{\\sim}"], -->
+<!--          var: ["\\operatorname{var}"], -->
+<!--          cov: ["\\operatorname{cov}"], -->
+<!--          cor: ["\\operatorname{cor}"], -->
+<!--          logit: ["\\operatorname{logit}"], -->
+<!--          ilogit: ["\\operatorname{ilogit}"], -->
+<!--          N: ["\\mathcal{N}"], -->
+<!--          elL: ["\\mathcal{L}"], -->
+<!--          elap: ["\\ell_{\\text{Lap}}"], -->
+<!--          ud: ["\\mathop{}\\!\\mathrm{d}"], -->
+<!--          der: ["\\frac{\\ud^{#1}}{\\ud{#2}^{#1}}", 2, ""], -->
+<!--          del: ["\\frac{\\partial^{#1}}{\\partial{#2}^{#1}}", 2, ""], -->
+<!--          fder: ["\\frac{\\ud^{#1}#3}{\\ud{#2}^{#1}}", 3, ""], -->
+<!--          fdel: ["\\frac{\\partial^{#1}#3}{\\partial{#2}^{#1}}", 3, ""], -->
+<!--          hess: ["\\frac{\\partial^2}{\\partial{#1}\\partial{#1}'}", 1], -->
+<!--          fhess: ["\\frac{\\partial^2#2}{\\partial{#1}\\partial{#1}'}", 2], -->
+<!--          ww: ["{\\bm{w}}"], -->
+<!--          xx: ["{\\bm{x}}"], -->
+<!--          yy: ["{\\bm{y}}"], -->
+<!--          zz: ["{\\bm{z}}"], -->
+<!--          VV: ["{\\bm{V}}"], -->
+<!--          XX: ["{\\bm{X}}"], -->
+<!--          YY: ["{\\bm{Y}}"], -->
+<!--          ZZ: ["{\\bm{Z}}"], -->
+<!--          aal: ["{\\bm{\\alpha}}"], -->
+<!--          bbe: ["{\\bm{\\beta}}"], -->
+<!--          gga: ["{\\bm{\\gamma}}"], -->
+<!--          eet: ["{\\bm{\\eta}}"], -->
+<!--          lla: ["{\\bm{\\lambda}}"], -->
+<!--          mmu: ["{\\bm{\\mu}}"], -->
+<!--          pph: ["{\\bm{\\phi}}"], -->
+<!--          pps: ["{\\bm{\\psi}}"], -->
+<!--          rrh: ["{\\bm{\\rho}}"], -->
+<!--          ssi: ["{\\bm{\\sigma}}"], -->
+<!--          tta: ["{\\bm{\\tau}}"], -->
+<!--          tth: ["{\\bm{\\theta}}"], -->
+<!--          GGa: ["{\\bm{\\Gamma}}"], -->
+<!--          SSi: ["{\\bm{\\Sigma}}"], -->
+<!--          TTh: ["{\\bm{\\Theta}}"] -->
+<!--      } -->
+<!--       } -->
+<!--   }); -->
+<!-- </script> -->
+<div class="section level2">
 <h2 id="the-common-factor-multivariate-stochastic-volatility-model">The Common-Factor Multivariate Stochastic Volatility Model<a class="anchor" aria-label="anchor" href="#the-common-factor-multivariate-stochastic-volatility-model"></a>
 </h2>
 <p>Let <span class="math inline">\(X_{it}\)</span> denote the log price of asset <span class="math inline">\(i = 1,\ldots N_a\)</span> at time <span class="math inline">\(t\)</span> and <span class="math inline">\(V_{it}\)</span> denote the corresponding volatility on the standard deviation scale. The common-factor multivariate stochastic volatility (mSV) model proposed by <span class="citation">Fang <em>et al.</em> (<a href="#ref-fang.etal20">2020</a>)</span> is marginally written as
 <span class="math display" id="eq:svuni">\[\begin{equation}
 \begin{aligned}
-\ud \log V_{it} &amp; = -\gamma_i (\log V_{it} - \mu_i) \ud t + \sigma_i \ud B_{it}^V \\
-\ud X_{it} &amp; = (\alpha_i - \tfrac 1 2 V_{it}^2) \ud t + V_{it} \left(\rho_i \ud B_{it}^V + \sqrt{1 - \rho_i^2} \ud B_{it}^Z\right).
+\mathop{}\!\mathrm{d}\log V_{it} &amp; = -\gamma_i (\log V_{it} - \mu_i) \mathop{}\!\mathrm{d}t + \sigma_i \mathop{}\!\mathrm{d}B_{it}^V \\
+\mathop{}\!\mathrm{d}X_{it} &amp; = (\alpha_i - \tfrac 1 2 V_{it}^2) \mathop{}\!\mathrm{d}t + V_{it} \left(\rho_i \mathop{}\!\mathrm{d}B_{it}^V + \sqrt{1 - \rho_i^2} \mathop{}\!\mathrm{d}B_{it}^Z\right).
 \end{aligned}
 \tag{1}
 \end{equation}\]</span>
 The correlation between assets and volatilities comes from factor models for both the assets and the volatilities, namely
 <span class="math display" id="eq:cor">\[\begin{equation}
 \begin{aligned}
-\ud B_{it}^V &amp; = \tau_i \ud B_{\star t}^V + \sqrt{1 - \tau_i^2} \ud B_{it}^\epsilon \\
-\ud B_{it}^Z &amp; = \omega_i \ud B_{\star t}^Z + \sqrt{1 - \omega_i^2} \ud B_{it}^\eta.
+\mathop{}\!\mathrm{d}B_{it}^V &amp; = \tau_i \mathop{}\!\mathrm{d}B_{\star t}^V + \sqrt{1 - \tau_i^2} \mathop{}\!\mathrm{d}B_{it}^\epsilon \\
+\mathop{}\!\mathrm{d}B_{it}^Z &amp; = \omega_i \mathop{}\!\mathrm{d}B_{\star t}^Z + \sqrt{1 - \omega_i^2} \mathop{}\!\mathrm{d}B_{it}^\eta.
 \end{aligned}
 \tag{2}
 \end{equation}\]</span>
 In <span class="citation">Fang <em>et al.</em> (<a href="#ref-fang.etal20">2020</a>)</span> it is suggested to estimate the volatility common innovation factor <span class="math inline">\(B_{\star t}^{V}\)</span> via an observable proxy, for example the VIX. That is, if <span class="math inline">\(V_{\star t}\)</span> is an observable proxy for the common volatility factor, then we use it to estimate <span class="math inline">\(B_{\star t}^V\)</span> via
 <span class="math display" id="eq:volproxy">\[\begin{equation}
-\ud \log V_{\star t} = -\gamma_{\star} (\log V_{\star t} - \mu_{\star}) \ud t + \sigma_{\star} \ud B_{\star t}^V.
+\mathop{}\!\mathrm{d}\log V_{\star t} = -\gamma_{\star} (\log V_{\star t} - \mu_{\star}) \mathop{}\!\mathrm{d}t + \sigma_{\star} \mathop{}\!\mathrm{d}B_{\star t}^V.
 \tag{3}
 \end{equation}\]</span>
 Here we propose to do something similar for the asset common innovation factor <span class="math inline">\(B_{\star t}^Z\)</span>. That is, let <span class="math inline">\((X_{0t}, V_{0t})\)</span> be a univariate stochastic volatility model for an observable proxy for the common asset factor (for example, SPX). Then we give it a similar marginal model to the above:
 <span class="math display" id="eq:assetproxy">\[\begin{equation}
 \begin{aligned}
-\ud \log V_{0t} &amp; = -\gamma_0 (\log V_{0t} - \mu_0) \ud t + \sigma_0 \ud B_{0t}^V \\
-\ud X_{0t} &amp; = (\alpha_0 - \tfrac 1 2 V_{0t}^2) \ud t + V_{0t} \left(\rho_0 \ud B_{0 t}^V + \sqrt{1 - \rho_0^2} \ud B_{0t}^Z \right),
+\mathop{}\!\mathrm{d}\log V_{0t} &amp; = -\gamma_0 (\log V_{0t} - \mu_0) \mathop{}\!\mathrm{d}t + \sigma_0 \mathop{}\!\mathrm{d}B_{0t}^V \\
+\mathop{}\!\mathrm{d}X_{0t} &amp; = (\alpha_0 - \tfrac 1 2 V_{0t}^2) \mathop{}\!\mathrm{d}t + V_{0t} \left(\rho_0 \mathop{}\!\mathrm{d}B_{0 t}^V + \sqrt{1 - \rho_0^2} \mathop{}\!\mathrm{d}B_{0t}^Z \right),
 \end{aligned}
 \tag{4}
 \end{equation}\]</span>
-where <span class="math inline">\(\ud B_{0t}^V = \tau_0 \ud B_{\star t}^V + \sqrt{1 - \tau_0^2} \ud B_{0t}^\epsilon\)</span>. The asset common factor is estimated from the proxy by equating <span class="math inline">\(B_{\star t}^Z = B_{0t}^Z\)</span>.</p>
+where <span class="math inline">\(\mathop{}\!\mathrm{d}B_{0t}^V = \tau_0 \mathop{}\!\mathrm{d}B_{\star t}^V + \sqrt{1 - \tau_0^2} \mathop{}\!\mathrm{d}B_{0t}^\epsilon\)</span>. The asset common factor is estimated from the proxy by equating <span class="math inline">\(B_{\star t}^Z = B_{0t}^Z\)</span>.</p>
 </div>
 <div class="section level2">
 <h2 id="parameter-estimation">Parameter Estimation<a class="anchor" aria-label="anchor" href="#parameter-estimation"></a>
 </h2>
 <p>The common-factor stochastic volatility model defined by <a href="#eq:svuni">(1)</a> through <a href="#eq:assetproxy">(4)</a> has likelihood function
 <span class="math display">\[
-\elL(\tth \mid \XX, \VV_0) \propto \int p(\XX, \VV, \VV_0 \mid \tth) \ud \VV.
+\mathcal{L}({\boldsymbol{\theta}}\mid {\boldsymbol{X}}, {\boldsymbol{V}}_0) \propto \int p({\boldsymbol{X}}, {\boldsymbol{V}}, {\boldsymbol{V}}_0 \mid {\boldsymbol{\theta}}) \mathop{}\!\mathrm{d}{\boldsymbol{V}}.
 \]</span>
-While the integral over the latent volatilities <span class="math inline">\(\VV\)</span> is typically intractable, <strong>svcommon</strong> uses Laplace’s method to approximate the integral by solving a tractable optimization problem. This is implemented using the R package <strong>TMB</strong>, which efficiently computes the approximate marginal loglikelihood
+While the integral over the latent volatilities <span class="math inline">\({\boldsymbol{V}}\)</span> is typically intractable, <strong>svcommon</strong> uses Laplace’s method to approximate the integral by solving a tractable optimization problem. This is implemented using the R package <strong>TMB</strong>, which efficiently computes the approximate marginal loglikelihood
 <span class="math display" id="eq:elap">\[\begin{equation}
-\elap(\tth \mid \XX, \VV_0) \approx \log \elL(\tth \mid \XX, \VV_0)
+\ell_{\text{Lap}}({\boldsymbol{\theta}}\mid {\boldsymbol{X}}, {\boldsymbol{V}}_0) \approx \log \mathcal{L}({\boldsymbol{\theta}}\mid {\boldsymbol{X}}, {\boldsymbol{V}}_0)
 \tag{5}
 \end{equation}\]</span>
-and its gradient <span class="math inline">\(\frac{\partial}{\partial \tth} \elap(\tth \mid \XX, \VV_0)\)</span> using automatic differentiation. <strong>svcommon</strong> uses a block coordinate descent algorithm with good initial values to very quickly converge to the approximate MLE <span class="math inline">\(\hat \tth = \operatorname{arg\,max}_{\tth} \elap(\XX, \VV_0 \mid \tth)\)</span>, about two orders of magnitude faster than exact inference methods. The procedure is illustrated with a dataset consisting of 3408 daily closing prices of 46 constituents of the S&amp;P500, the index value itself (GSPC), and its volatility index (VIX).</p>
+and its gradient <span class="math inline">\(\frac{\partial}{\partial {\boldsymbol{\theta}}} \ell_{\text{Lap}}({\boldsymbol{\theta}}\mid {\boldsymbol{X}}, {\boldsymbol{V}}_0)\)</span> using automatic differentiation. <strong>svcommon</strong> uses a block coordinate descent algorithm with good initial values to very quickly converge to the approximate MLE <span class="math inline">\(\hat {\boldsymbol{\theta}}= \operatorname{arg\,max}_{{\boldsymbol{\theta}}} \ell_{\text{Lap}}({\boldsymbol{X}}, {\boldsymbol{V}}_0 \mid {\boldsymbol{\theta}})\)</span>, about two orders of magnitude faster than exact inference methods. The procedure is illustrated with a dataset consisting of 3408 daily closing prices of 46 constituents of the S&amp;P500, the index value itself (GSPC), and its volatility index (VIX).</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># required packages</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/mlysy/svcommon" class="external-link">svcommon</a></span><span class="op">)</span></span>
@@ -328,15 +329,275 @@ and its gradient <span class="math inline">\(\frac{\partial}{\partial \tth} \ela
 <div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/base/system.time.html" class="external-link">system.time</a></span><span class="op">(</span><span class="op">{</span></span>
 <span>  <span class="va">svc_est</span> <span class="op">&lt;-</span> <span class="fu">TMB</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/TMB/man/sdreport.html" class="external-link">sdreport</a></span><span class="op">(</span><span class="va">svc_ad</span><span class="op">)</span></span>
-<span><span class="op">}</span><span class="op">)</span></span>
-<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">svc_est</span>, select <span class="op">=</span> <span class="st">"report"</span><span class="op">)</span>, digits <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
+<span><span class="op">}</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">svc_est</span>, select <span class="op">=</span> <span class="st">"report"</span><span class="op">)</span>, digits <span class="op">=</span> <span class="fl">2</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<thead><tr class="header">
+<th align="left"></th>
+<th align="right">Estimate</th>
+<th align="right">Std. Error</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">alpha</td>
+<td align="right">0.05</td>
+<td align="right">0.05</td>
+</tr>
+<tr class="even">
+<td align="left">alpha</td>
+<td align="right">0.01</td>
+<td align="right">0.07</td>
+</tr>
+<tr class="odd">
+<td align="left">alpha</td>
+<td align="right">0.02</td>
+<td align="right">0.08</td>
+</tr>
+<tr class="even">
+<td align="left">alpha</td>
+<td align="right">-0.05</td>
+<td align="right">0.07</td>
+</tr>
+<tr class="odd">
+<td align="left">alpha</td>
+<td align="right">-0.01</td>
+<td align="right">0.07</td>
+</tr>
+<tr class="even">
+<td align="left">alpha</td>
+<td align="right">0.00</td>
+<td align="right">0.06</td>
+</tr>
+<tr class="odd">
+<td align="left">log_gamma</td>
+<td align="right">1.78</td>
+<td align="right">0.13</td>
+</tr>
+<tr class="even">
+<td align="left">log_gamma</td>
+<td align="right">1.13</td>
+<td align="right">0.21</td>
+</tr>
+<tr class="odd">
+<td align="left">log_gamma</td>
+<td align="right">1.54</td>
+<td align="right">0.25</td>
+</tr>
+<tr class="even">
+<td align="left">log_gamma</td>
+<td align="right">1.67</td>
+<td align="right">0.28</td>
+</tr>
+<tr class="odd">
+<td align="left">log_gamma</td>
+<td align="right">1.66</td>
+<td align="right">0.25</td>
+</tr>
+<tr class="even">
+<td align="left">log_gamma</td>
+<td align="right">1.79</td>
+<td align="right">0.23</td>
+</tr>
+<tr class="odd">
+<td align="left">log_gamma</td>
+<td align="right">1.44</td>
+<td align="right">0.33</td>
+</tr>
+<tr class="even">
+<td align="left">mu</td>
+<td align="right">2.69</td>
+<td align="right">0.08</td>
+</tr>
+<tr class="odd">
+<td align="left">mu</td>
+<td align="right">-2.12</td>
+<td align="right">0.10</td>
+</tr>
+<tr class="even">
+<td align="left">mu</td>
+<td align="right">-1.74</td>
+<td align="right">0.15</td>
+</tr>
+<tr class="odd">
+<td align="left">mu</td>
+<td align="right">-1.65</td>
+<td align="right">0.13</td>
+</tr>
+<tr class="even">
+<td align="left">mu</td>
+<td align="right">-1.66</td>
+<td align="right">0.19</td>
+</tr>
+<tr class="odd">
+<td align="left">mu</td>
+<td align="right">-1.72</td>
+<td align="right">0.12</td>
+</tr>
+<tr class="even">
+<td align="left">mu</td>
+<td align="right">-1.84</td>
+<td align="right">0.16</td>
+</tr>
+<tr class="odd">
+<td align="left">log_sigma</td>
+<td align="right">0.00</td>
+<td align="right">0.02</td>
+</tr>
+<tr class="even">
+<td align="left">log_sigma</td>
+<td align="right">-0.39</td>
+<td align="right">0.09</td>
+</tr>
+<tr class="odd">
+<td align="left">log_sigma</td>
+<td align="right">0.42</td>
+<td align="right">0.11</td>
+</tr>
+<tr class="even">
+<td align="left">log_sigma</td>
+<td align="right">0.37</td>
+<td align="right">0.13</td>
+</tr>
+<tr class="odd">
+<td align="left">log_sigma</td>
+<td align="right">0.75</td>
+<td align="right">0.10</td>
+</tr>
+<tr class="even">
+<td align="left">log_sigma</td>
+<td align="right">0.44</td>
+<td align="right">0.13</td>
+</tr>
+<tr class="odd">
+<td align="left">log_sigma</td>
+<td align="right">0.38</td>
+<td align="right">0.12</td>
+</tr>
+<tr class="even">
+<td align="left">logit_rho</td>
+<td align="right">-3.10</td>
+<td align="right">0.09</td>
+</tr>
+<tr class="odd">
+<td align="left">logit_rho</td>
+<td align="right">-1.35</td>
+<td align="right">0.09</td>
+</tr>
+<tr class="even">
+<td align="left">logit_rho</td>
+<td align="right">-1.47</td>
+<td align="right">0.09</td>
+</tr>
+<tr class="odd">
+<td align="left">logit_rho</td>
+<td align="right">-1.53</td>
+<td align="right">0.10</td>
+</tr>
+<tr class="even">
+<td align="left">logit_rho</td>
+<td align="right">-1.57</td>
+<td align="right">0.10</td>
+</tr>
+<tr class="odd">
+<td align="left">logit_rho</td>
+<td align="right">-1.61</td>
+<td align="right">0.11</td>
+</tr>
+<tr class="even">
+<td align="left">logit_tau</td>
+<td align="right">2.93</td>
+<td align="right">0.08</td>
+</tr>
+<tr class="odd">
+<td align="left">logit_tau</td>
+<td align="right">2.92</td>
+<td align="right">0.26</td>
+</tr>
+<tr class="even">
+<td align="left">logit_tau</td>
+<td align="right">2.96</td>
+<td align="right">0.26</td>
+</tr>
+<tr class="odd">
+<td align="left">logit_tau</td>
+<td align="right">1.93</td>
+<td align="right">0.14</td>
+</tr>
+<tr class="even">
+<td align="left">logit_tau</td>
+<td align="right">2.32</td>
+<td align="right">0.16</td>
+</tr>
+<tr class="odd">
+<td align="left">logit_tau</td>
+<td align="right">2.34</td>
+<td align="right">0.17</td>
+</tr>
+<tr class="even">
+<td align="left">logit_omega</td>
+<td align="right">2.22</td>
+<td align="right">0.11</td>
+</tr>
+<tr class="odd">
+<td align="left">logit_omega</td>
+<td align="right">2.26</td>
+<td align="right">0.12</td>
+</tr>
+<tr class="even">
+<td align="left">logit_omega</td>
+<td align="right">1.48</td>
+<td align="right">0.10</td>
+</tr>
+<tr class="odd">
+<td align="left">logit_omega</td>
+<td align="right">2.16</td>
+<td align="right">0.13</td>
+</tr>
+<tr class="even">
+<td align="left">logit_omega</td>
+<td align="right">2.07</td>
+<td align="right">0.13</td>
+</tr>
+<tr class="odd">
+<td align="left">log_VT</td>
+<td align="right">-1.65</td>
+<td align="right">0.05</td>
+</tr>
+<tr class="even">
+<td align="left">log_VT</td>
+<td align="right">-0.81</td>
+<td align="right">0.13</td>
+</tr>
+<tr class="odd">
+<td align="left">log_VT</td>
+<td align="right">-0.90</td>
+<td align="right">0.13</td>
+</tr>
+<tr class="even">
+<td align="left">log_VT</td>
+<td align="right">0.12</td>
+<td align="right">0.13</td>
+</tr>
+<tr class="odd">
+<td align="left">log_VT</td>
+<td align="right">-0.74</td>
+<td align="right">0.12</td>
+</tr>
+<tr class="even">
+<td align="left">log_VT</td>
+<td align="right">-0.95</td>
+<td align="right">0.14</td>
+</tr>
+</tbody>
+</table>
 <p>All parameter estimates have reasonable precision, except notably <span class="math inline">\(\alpha_i\)</span>, the long-term trend in asset <span class="math inline">\(i\)</span>, which is notoriously difficult to estimate. Also included are stimates of <span class="math inline">\(\log V_{iT}\)</span>, the latent volatility on the last day <span class="math inline">\(t = T\)</span> in the observed data. This can be useful for Bayesian forecasting, which can be conducted using the following method:</p>
 <ol style="list-style-type: decimal">
-<li><p>Let <span class="math inline">\(p(\tth, \log V_{0T}, \ldots, \log V_{qT} \mid \XX, \VV_0)\)</span> denote the posterior distribution of the parameters and terminal volatilities for <span class="math inline">\(q\)</span> assets and the common asset factor with the Lebesgue prior<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a> <span class="math inline">\(\pi(\tth) \propto 1\)</span>. By the mode-quadrature approximation, this posterior is taken to be normal with mean and variance obtained from <code><a href="https://rdrr.io/pkg/TMB/man/sdreport.html" class="external-link">TMB::sdreport()</a></code>.</p></li>
-<li><p>Let <span class="math inline">\(p(X_{0,T+d}, \ldots, X_{q,T+d}, \log V_{0,T+d}, \ldots, \log V_{q,T+d} \mid \XX, \VV_0)\)</span> denote the Bayesian forecast distribution for assets and volatilities on day <span class="math inline">\(t = T+d\)</span>. We can simulate from this distribution by combining draws from the multivariate normal approximation to <span class="math inline">\(p(\tth, \log V_{0T}, \ldots, \log V_{qT} \mid \XX, \VV_0)\)</span> with forward simulation from the SVC model with <code><a href="../reference/svc_sim.html">svc_sim()</a></code>.</p></li>
+<li><p>Let <span class="math inline">\(p({\boldsymbol{\theta}}, \log V_{0T}, \ldots, \log V_{qT} \mid {\boldsymbol{X}}, {\boldsymbol{V}}_0)\)</span> denote the posterior distribution of the parameters and terminal volatilities for <span class="math inline">\(q\)</span> assets and the common asset factor with the Lebesgue prior<a href="#fn2" class="footnote-ref" id="fnref2"><sup>2</sup></a> <span class="math inline">\(\pi({\boldsymbol{\theta}}) \propto 1\)</span>. By the mode-quadrature approximation, this posterior is taken to be normal with mean and variance obtained from <code><a href="https://rdrr.io/pkg/TMB/man/sdreport.html" class="external-link">TMB::sdreport()</a></code>.</p></li>
+<li><p>Let <span class="math inline">\(p(X_{0,T+d}, \ldots, X_{q,T+d}, \log V_{0,T+d}, \ldots, \log V_{q,T+d} \mid {\boldsymbol{X}}, {\boldsymbol{V}}_0)\)</span> denote the Bayesian forecast distribution for assets and volatilities on day <span class="math inline">\(t = T+d\)</span>. We can simulate from this distribution by combining draws from the multivariate normal approximation to <span class="math inline">\(p({\boldsymbol{\theta}}, \log V_{0T}, \ldots, \log V_{qT} \mid {\boldsymbol{X}}, {\boldsymbol{V}}_0)\)</span> with forward simulation from the SVC model with <code><a href="../reference/svc_sim.html">svc_sim()</a></code>.</p></li>
 </ol>
 <p>An illustration of this procedure produces the posterior forecast distribution in Figure <a href="#fig:forecast">1</a>.</p>
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">nfwd</span> <span class="op">&lt;-</span> <span class="fl">10</span> <span class="co"># number of days to forecast</span></span>
 <span><span class="va">nsim</span> <span class="op">&lt;-</span> <span class="fl">1e4</span> <span class="co"># number of simulated forecasts</span></span>
 <span></span>
@@ -381,7 +642,7 @@ and its gradient <span class="math inline">\(\frac{\partial}{\partial \tth} \ela
 <div class="figure">
 <span style="display:block;" id="fig:forecast"></span>
 <img src="svcommon_files/figure-html/forecast-1.png" alt="Posterior forecast distribution $p(\VV_{T+d} \mid \XX, \VV_0)$ and $p(\XX_{T+d} \mid \XX, \VV_0)$."><p class="caption">
-Figure 1: Posterior forecast distribution <span class="math inline">\(p(\VV_{T+d} \mid \XX, \VV_0)\)</span> and <span class="math inline">\(p(\XX_{T+d} \mid \XX, \VV_0)\)</span>.
+Figure 1: Posterior forecast distribution <span class="math inline">\(p({\boldsymbol{V}}_{T+d} \mid {\boldsymbol{X}}, {\boldsymbol{V}}_0)\)</span> and <span class="math inline">\(p({\boldsymbol{X}}_{T+d} \mid {\boldsymbol{X}}, {\boldsymbol{V}}_0)\)</span>.
 </p>
 </div>
 </div>
@@ -399,7 +660,7 @@ Fang, Y., Lysy, M., and McLeish, D., 2020. Common-factor stochastic volatility m
 <hr>
 <ol>
 <li id="fn1"><p>For this particular dataset, it is possible to skip the initialization and blockwise coordinate descent steps, provided the <code>iter.max</code> parameter to <code><a href="https://rdrr.io/r/stats/nlminb.html" class="external-link">stats::nlminb()</a></code> is large enough.<a href="#fnref1" class="footnote-back">↩︎</a></p></li>
-<li id="fn2"><p>Since the prior is flat on the original scale but optimization is done on the transformed scale (<span class="math inline">\(\log \gamma_i\)</span>, <span class="math inline">\(\logit \rho_i\)</span>, etc.) the optimizer provides the correct Bayesian mode but a penalized maximum likelihood. SVC experiments indicate that penalization considerably improves the estimation of correlation parameters, which otherwise tend to drift off to boundary values.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
+<li id="fn2"><p>Since the prior is flat on the original scale but optimization is done on the transformed scale (<span class="math inline">\(\log \gamma_i\)</span>, <span class="math inline">\(\operatorname{logit}\rho_i\)</span>, etc.) the optimizer provides the correct Bayesian mode but a penalized maximum likelihood. SVC experiments indicate that penalization considerably improves the estimation of correlation parameters, which otherwise tend to drift off to boundary values.<a href="#fnref2" class="footnote-back">↩︎</a></p></li>
 </ol>
 </div>
   </div>
@@ -412,23 +673,48 @@ Fang, Y., Lysy, M., and McLeish, D., 2020. Common-factor stochastic volatility m
 
 
 
-      <footer><div class="copyright">
-  <p></p>
-<p>Developed by Martin Lysy.</p>
+      <footer><!-- load mathjax after it has been configured --><script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script><div class="copyright">
+  <!-- <p>Copyright 2017-2019 Martin Lysy</p> -->
+  <script>
+    function get_date() {
+	// return "aaaa";
+	var x = new Date(Date.parse(document.lastModified));
+	var d = x.getDate();
+	var m = x.getMonth() + 1;
+	var y = x.getYear();
+	// different on IE and NS
+	if(y >= 2000)
+	{
+	    y -= 2000;
+	}
+	if(y >= 100)
+	{
+	    y -= 100;
+	}
+	y = y + 2000;
+	// x = new Date(x);
+	// return x.getMonth();
+	return "" + m + "/" + d + "/" + y;
+    }
+  </script><p>Last updated: <script> document.write(get_date()) </script></p>
+
+
+      
+   </div>
+
+
+
+
+
+
+  </footer>
 </div>
-
-<div class="pkgdown">
-  <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.0.</p>
-</div>
-
-      </footer>
-</div>
-
-
-
-
-
-
-  </body>
+</body>
 </html>
